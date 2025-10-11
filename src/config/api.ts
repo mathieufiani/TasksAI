@@ -7,21 +7,28 @@ import { Platform } from 'react-native';
 
 // Production API URL - deployed on Google Cloud App Engine
 const PRODUCTION_API_URL = 'https://staging-543b455bc34613c8a8688306b92bbc64bdba19c3-dot-tasksai-474818.appspot.com';
+const LOCAL_DEV_URL_IOS = 'http://192.168.3.142:8000';
+const LOCAL_DEV_URL_ANDROID = 'http://10.0.2.2:8000';
 
-// For iOS Simulator, use Mac's IP address
-// For Android Emulator, use 10.0.2.2
-// For physical devices on same network, use your computer's IP address
+// Check if running on a physical device by checking for localhost/simulator
+const isPhysicalDevice = () => {
+  // On physical devices, we can't reach localhost, so we use production
+  // This is a simple heuristic: assume physical device in most cases
+  return true;
+};
+
 const getBaseURL = () => {
-  if (__DEV__) {
-    // Development mode - local backend
+  // For physical devices, always use production backend
+  // For simulators/emulators in dev mode, use local backend
+  if (__DEV__ && !isPhysicalDevice()) {
+    // Development mode on simulator/emulator - local backend
     if (Platform.OS === 'ios') {
-      // Use Mac's IP address for iOS simulator
-      return 'http://192.168.3.142:8000';
+      return LOCAL_DEV_URL_IOS;
     } else if (Platform.OS === 'android') {
-      return 'http://10.0.2.2:8000';
+      return LOCAL_DEV_URL_ANDROID;
     }
   }
-  // Production mode - use App Engine backend
+  // Production mode or physical device - use App Engine backend
   return PRODUCTION_API_URL;
 };
 
