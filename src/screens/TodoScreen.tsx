@@ -4,6 +4,8 @@ import {
   View,
   Text,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Todo, Priority } from '../types/Todo';
@@ -166,7 +168,10 @@ export const TodoScreen: React.FC = () => {
   const progress = totalCount > 0 ? completedCount / totalCount : 0;
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}>
       <View style={[styles.header, { paddingTop: safeAreaInsets.top + spacing.md }]}>
         <View style={styles.headerTop}>
           <View>
@@ -203,7 +208,7 @@ export const TodoScreen: React.FC = () => {
       />
 
       <AddTodoInput onAdd={handleAddTodo} />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

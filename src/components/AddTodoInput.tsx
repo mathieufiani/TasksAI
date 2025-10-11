@@ -5,13 +5,12 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  useColorScheme,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { Priority } from '../types/Todo';
 import { PrioritySelector } from './PrioritySelector';
 import { DatePicker } from './DatePicker';
+import colors from '../theme/colors';
+import { spacing, borderRadius, fontSize, fontWeight, shadows } from '../theme/styles';
 
 interface AddTodoInputProps {
   onAdd: (text: string, priority: Priority, deadline?: Date) => void;
@@ -22,7 +21,6 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
   const [priority, setPriority] = useState<Priority>('medium');
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [showOptions, setShowOptions] = useState(false);
-  const isDarkMode = useColorScheme() === 'dark';
 
   const handleAdd = () => {
     if (text.trim()) {
@@ -35,81 +33,58 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        isDarkMode ? styles.containerDark : styles.containerLight,
-      ]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.inputContainer}>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={[
-                styles.input,
-                isDarkMode ? styles.inputDark : styles.inputLight,
-              ]}
-              value={text}
-              onChangeText={setText}
-              placeholder="Add a new todo..."
-              placeholderTextColor={isDarkMode ? '#8E8E93' : '#C7C7CC'}
-              onSubmitEditing={handleAdd}
-              returnKeyType="done"
-            />
-            <TouchableOpacity
-              style={styles.optionsButton}
-              onPress={() => setShowOptions(!showOptions)}>
-              <Text style={styles.optionsButtonText}>
-                {showOptions ? '▼' : '▶'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, !text.trim() && styles.buttonDisabled]}
-              onPress={handleAdd}
-              disabled={!text.trim()}>
-              <Text style={styles.buttonText}>+</Text>
-            </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.inputContainer}>
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            value={text}
+            onChangeText={setText}
+            placeholder="✏️ Add a new task..."
+            placeholderTextColor={colors.textSecondary}
+            onSubmitEditing={handleAdd}
+            returnKeyType="done"
+          />
+          <TouchableOpacity
+            style={styles.optionsButton}
+            onPress={() => setShowOptions(!showOptions)}>
+            <Text style={styles.optionsButtonText}>
+              {showOptions ? '▼' : '▶'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, !text.trim() && styles.buttonDisabled]}
+            onPress={handleAdd}
+            disabled={!text.trim()}>
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+
+        {showOptions && (
+          <View style={styles.optionsContainer}>
+            <Text style={styles.optionsLabel}>
+              Priority
+            </Text>
+            <PrioritySelector priority={priority} onSelect={setPriority} />
+
+            <Text style={[styles.optionsLabel, styles.optionsLabelMargin]}>
+              Deadline
+            </Text>
+            <DatePicker date={deadline} onSelect={setDeadline} />
           </View>
-
-          {showOptions && (
-            <View style={styles.optionsContainer}>
-              <Text
-                style={[
-                  styles.optionsLabel,
-                  isDarkMode && styles.optionsLabelDark,
-                ]}>
-                Priority
-              </Text>
-              <PrioritySelector priority={priority} onSelect={setPriority} />
-
-              <Text
-                style={[
-                  styles.optionsLabel,
-                  isDarkMode && styles.optionsLabelDark,
-                  styles.optionsLabelMargin,
-                ]}>
-                Deadline
-              </Text>
-              <DatePicker date={deadline} onSelect={setDeadline} />
-            </View>
-          )}
-      </KeyboardAvoidingView>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-  },
-  containerLight: {
-    backgroundColor: '#F9F9F9',
-  },
-  containerDark: {
-    backgroundColor: '#1C1C1E',
-    borderTopColor: '#38383A',
+    padding: spacing.lg,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    ...shadows.large,
   },
   inputContainer: {
     width: '100%',
@@ -120,61 +95,63 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: 50,
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    marginRight: 8,
-  },
-  inputLight: {
-    backgroundColor: '#FFFFFF',
-    color: '#000000',
-  },
-  inputDark: {
-    backgroundColor: '#2C2C2E',
-    color: '#FFFFFF',
+    height: 56,
+    borderRadius: borderRadius.round,
+    paddingHorizontal: spacing.lg,
+    fontSize: fontSize.md,
+    backgroundColor: colors.background,
+    color: colors.textPrimary,
+    marginRight: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
+    fontWeight: fontWeight.medium as any,
   },
   optionsButton: {
-    width: 40,
-    height: 50,
+    width: 44,
+    height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: spacing.sm,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.primaryLight,
   },
   optionsButtonText: {
-    fontSize: 14,
-    color: '#007AFF',
+    fontSize: fontSize.md,
+    color: colors.primary,
+    fontWeight: fontWeight.bold as any,
   },
   button: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#007AFF',
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.medium,
   },
   buttonDisabled: {
-    backgroundColor: '#C7C7CC',
+    backgroundColor: colors.border,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '300',
+    color: colors.textOnPrimary,
+    fontSize: 32,
+    fontWeight: fontWeight.normal as any,
   },
   optionsContainer: {
-    marginTop: 16,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: borderRadius.lg,
   },
   optionsLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginBottom: 8,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold as any,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
     textTransform: 'uppercase',
-  },
-  optionsLabelDark: {
-    color: '#98989D',
+    letterSpacing: 1,
   },
   optionsLabelMargin: {
-    marginTop: 16,
+    marginTop: spacing.md,
   },
 });
