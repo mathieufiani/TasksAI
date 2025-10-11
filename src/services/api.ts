@@ -117,7 +117,9 @@ class ApiService {
   async getTaskLabels(taskId: number): Promise<Label[]> {
     try {
       const response = await this.client.get<Label[]>(API_ENDPOINTS.TASK_LABELS(taskId.toString()));
-      return response.data;
+      // Filter out labels with confidence score below 70%
+      const highConfidenceLabels = response.data.filter(label => label.confidence_score >= 0.7);
+      return highConfidenceLabels;
     } catch (error) {
       // If labels don't exist yet, return empty array
       console.log(`[API] No labels found for task ${taskId}`);

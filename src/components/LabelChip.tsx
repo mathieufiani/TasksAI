@@ -51,19 +51,13 @@ export const LabelChip: React.FC<LabelChipProps> = ({ label, status, isPending }
     );
   }
 
-  // Show actual label
+  // Show actual label (only high confidence labels >= 70%)
   if (label) {
     const backgroundColor = getCategoryColor(label.label_category, isDarkMode);
-    const opacity = Math.max(0.6, label.confidence_score); // Visual confidence indicator
 
     return (
-      <View style={[styles.chip, { backgroundColor, opacity }]}>
+      <View style={[styles.chip, { backgroundColor }]}>
         <Text style={styles.chipText}>{label.label_name}</Text>
-        {label.confidence_score < 0.7 && (
-          <Text style={styles.confidenceText}>
-            {Math.round(label.confidence_score * 100)}%
-          </Text>
-        )}
       </View>
     );
   }
@@ -84,8 +78,11 @@ export const LabelList: React.FC<LabelListProps> = ({
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
+  // Filter labels with confidence >= 70%
+  const highConfidenceLabels = labels?.filter(label => label.confidence_score >= 0.7) || [];
+
   // Show pending state if no labels yet
-  if (!labels || labels.length === 0) {
+  if (highConfidenceLabels.length === 0) {
     return (
       <View style={styles.labelContainer}>
         <LabelChip status={labelingStatus || 'pending'} isPending />
@@ -93,8 +90,8 @@ export const LabelList: React.FC<LabelListProps> = ({
     );
   }
 
-  const visibleLabels = labels.slice(0, maxVisible);
-  const remainingCount = labels.length - maxVisible;
+  const visibleLabels = highConfidenceLabels.slice(0, maxVisible);
+  const remainingCount = highConfidenceLabels.length - maxVisible;
 
   return (
     <View style={styles.labelContainer}>
