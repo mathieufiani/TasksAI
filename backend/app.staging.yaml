@@ -1,5 +1,5 @@
 runtime: python311
-service: staging
+service: default
 
 instance_class: F2
 

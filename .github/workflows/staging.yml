@@ -67,7 +67,7 @@ jobs:
 
       - name: Deploy to App Engine (Staging)
         run: |
-          gcloud app deploy app.staging.yaml --quiet --version=staging-${{ github.sha }} --promote
+          gcloud app deploy app.staging.yaml --quiet --version=staging-${{ github.sha }} --no-promote
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
@@ -75,4 +75,4 @@ jobs:
       - name: Verify deployment
         run: |
           echo "Deployment completed successfully!"
-          echo "Staging URL: https://staging-dot-${{ env.GCP_PROJECT_ID }}.appspot.com"
+          echo "Staging URL: https://staging-${{ github.sha }}-dot-${{ env.GCP_PROJECT_ID }}.appspot.com"
