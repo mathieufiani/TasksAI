@@ -3,7 +3,12 @@ Tests for the main application endpoints
 """
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from unittest.mock import Mock, patch
+
+# Mock Pinecone before importing app
+with patch('app.services.pinecone_service.Pinecone'):
+    with patch('app.services.pinecone_service.AsyncOpenAI'):
+        from app.main import app
 
 client = TestClient(app)
 

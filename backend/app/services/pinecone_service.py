@@ -27,15 +27,35 @@ class PineconeService:
 
     def __init__(self):
         """Initialize Pinecone and OpenAI clients"""
-        self.pc = Pinecone(api_key=settings.PINECONE_API_KEY)
-        self.openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-
         self.index_name = settings.PINECONE_INDEX_NAME
         self.embedding_model = settings.OPENAI_EMBEDDING_MODEL or "text-embedding-3-small"
         self.embedding_dimensions = 1536  # Default for text-embedding-3-small
 
-        # Initialize index
-        self._ensure_index_exists()
+        # Lazy initialization
+        self._pc = None
+        self._openai_client = None
+        self._index = None
+
+    @property
+    def pc(self):
+        """Lazy load Pinecone client"""
+        if self._pc is None:
+            self._pc = Pinecone(api_key=settings.PINECONE_API_KEY)
+        return self._pc
+
+    @property
+    def openai_client(self):
+        """Lazy load OpenAI client"""
+        if self._openai_client is None:
+            self._openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        return self._openai_client
+
+    @property
+    def index(self):
+        """Lazy load Pinecone index"""
+        if self._index is None:
+            self._ensure_index_exists()
+        return self._index
 
     def _ensure_index_exists(self):
         """Ensure the Pinecone index exists, create if it doesn't"""
@@ -57,7 +77,7 @@ class PineconeService:
             else:
                 print(f"✓ Pinecone index '{self.index_name}' already exists")
 
-            self.index = self.pc.Index(self.index_name)
+            self._index = self.pc.Index(self.index_name)
 
         except Exception as e:
             print(f"Error initializing Pinecone index: {str(e)}")
