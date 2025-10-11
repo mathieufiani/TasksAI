@@ -1,6 +1,6 @@
 /**
- * My Todo App
- * A simple todo application with AI capabilities
+ * TasksAI - Gamified Todo App
+ * A delightful, pastel-themed todo application with AI capabilities
  *
  * @format
  */
@@ -9,7 +9,6 @@ import React, { useState, useEffect } from 'react';
 import {
   StatusBar,
   StyleSheet,
-  useColorScheme,
   View,
   Text,
   ActivityIndicator,
@@ -19,11 +18,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TodoScreen } from './src/screens/TodoScreen';
 import { ChatBotScreen } from './src/screens/ChatBotScreen';
+import colors from './src/theme/colors';
+import { spacing, borderRadius } from './src/theme/styles';
 
 const Tab = createBottomTabNavigator();
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
   const [loading, setLoading] = useState(true);
 
   // Give app time to initialize
@@ -34,19 +34,17 @@ function App() {
   if (loading) {
     return (
       <SafeAreaProvider>
-        <View
-          style={[
-            styles.loadingContainer,
-            isDarkMode ? styles.containerDark : styles.containerLight,
-          ]}>
-          <ActivityIndicator
-            size="large"
-            color={isDarkMode ? '#FFFFFF' : '#000000'}
-          />
-          <Text
-            style={[styles.loadingText, isDarkMode && styles.loadingTextDark]}>
-            Loading...
-          </Text>
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingContent}>
+            <Text style={styles.loadingEmoji}>✨</Text>
+            <ActivityIndicator
+              size="large"
+              color={colors.primary}
+            />
+            <Text style={styles.loadingText}>
+              TasksAI is waking up...
+            </Text>
+          </View>
         </View>
       </SafeAreaProvider>
     );
@@ -54,24 +52,44 @@ function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: '#007AFF',
-            tabBarInactiveTintColor: '#8E8E93',
+            tabBarActiveTintColor: colors.primary,
+            tabBarInactiveTintColor: colors.textSecondary,
             tabBarStyle: {
-              backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
-              borderTopColor: isDarkMode ? '#38383A' : '#E5E5EA',
+              backgroundColor: colors.surface,
+              borderTopWidth: 0,
+              elevation: 20,
+              shadowColor: colors.shadow,
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 1,
+              shadowRadius: 12,
+              height: 90,
+              paddingBottom: spacing.lg,
+              paddingTop: spacing.sm,
+              borderTopLeftRadius: borderRadius.lg,
+              borderTopRightRadius: borderRadius.lg,
+            },
+            tabBarLabelStyle: {
+              fontSize: 12,
+              fontWeight: '600',
+              marginTop: 4,
             },
           }}>
           <Tab.Screen
             name="Tasks"
             component={TodoScreen}
             options={{
-              tabBarIcon: ({ color, size }) => (
-                <Text style={{ fontSize: size, color }}>✓</Text>
+              tabBarIcon: ({ color, focused }) => (
+                <View style={[
+                  styles.tabIconContainer,
+                  focused && styles.tabIconContainerActive,
+                ]}>
+                  <Text style={{ fontSize: 24, color }}>✓</Text>
+                </View>
               ),
             }}
           />
@@ -79,8 +97,13 @@ function App() {
             name="Assistant"
             component={ChatBotScreen}
             options={{
-              tabBarIcon: ({ color, size }) => (
-                <Text style={{ fontSize: size, color }}>💬</Text>
+              tabBarIcon: ({ color, focused }) => (
+                <View style={[
+                  styles.tabIconContainer,
+                  focused && styles.tabIconContainerActive,
+                ]}>
+                  <Text style={{ fontSize: 24, color }}>💬</Text>
+                </View>
               ),
             }}
           />
@@ -95,20 +118,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
-  containerLight: {
-    backgroundColor: '#F2F2F7',
+  loadingContent: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  containerDark: {
-    backgroundColor: '#000000',
+  loadingEmoji: {
+    fontSize: 64,
+    marginBottom: spacing.md,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: spacing.md,
     fontSize: 16,
-    color: '#8E8E93',
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
-  loadingTextDark: {
-    color: '#FFFFFF',
+  tabIconContainer: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.md,
+  },
+  tabIconContainerActive: {
+    backgroundColor: colors.primaryLight,
   },
 });
 

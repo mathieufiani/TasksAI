@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
-  useColorScheme,
   View,
   Text,
   Alert,
@@ -11,10 +10,11 @@ import { Todo, Priority } from '../types/Todo';
 import { TodoList } from '../components/TodoList';
 import { AddTodoInput } from '../components/AddTodoInput';
 import { apiService, BackendTask } from '../services/api';
+import colors from '../theme/colors';
+import { spacing, borderRadius, fontSize, fontWeight } from '../theme/styles';
 
 export const TodoScreen: React.FC = () => {
   const safeAreaInsets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
   const [todos, setTodos] = useState<Todo[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -161,20 +161,39 @@ export const TodoScreen: React.FC = () => {
   };
 
   const activeCount = todos.filter(todo => !todo.completed).length;
+  const completedCount = todos.filter(todo => todo.completed).length;
+  const totalCount = todos.length;
+  const progress = totalCount > 0 ? completedCount / totalCount : 0;
 
   return (
-    <View
-      style={[
-        styles.container,
-        isDarkMode ? styles.containerDark : styles.containerLight,
-      ]}>
-      <View style={[styles.header, { paddingTop: safeAreaInsets.top + 16 }]}>
-        <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-          My Todos
-        </Text>
-        <Text style={[styles.subtitle, isDarkMode && styles.subtitleDark]}>
-          {activeCount} {activeCount === 1 ? 'task' : 'tasks'} remaining
-        </Text>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: safeAreaInsets.top + spacing.md }]}>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.title}>
+              ✨ My Tasks
+            </Text>
+            <Text style={styles.subtitle}>
+              {activeCount} {activeCount === 1 ? 'task' : 'tasks'} to conquer!
+            </Text>
+          </View>
+          <View style={styles.progressCircle}>
+            <Text style={styles.progressText}>
+              {completedCount}/{totalCount}
+            </Text>
+          </View>
+        </View>
+
+        {totalCount > 0 && (
+          <View style={styles.progressBarContainer}>
+            <View
+              style={[
+                styles.progressBar,
+                { width: `${progress * 100}%` }
+              ]}
+            />
+          </View>
+        )}
       </View>
 
       <TodoList
@@ -191,31 +210,61 @@ export const TodoScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  containerLight: {
-    backgroundColor: '#F2F2F7',
-  },
-  containerDark: {
-    backgroundColor: '#000000',
+    backgroundColor: colors.background,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    backgroundColor: colors.surface,
+    borderBottomLeftRadius: borderRadius.xl,
+    borderBottomRightRadius: borderRadius.xl,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   title: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  titleDark: {
-    color: '#FFFFFF',
+    fontSize: fontSize.xxxl,
+    fontWeight: fontWeight.extrabold as any,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.medium as any,
+    color: colors.textSecondary,
   },
-  subtitleDark: {
-    color: '#636366',
+  progressCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: colors.primary,
+  },
+  progressText: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.bold as any,
+    color: colors.primary,
+  },
+  progressBarContainer: {
+    height: 12,
+    backgroundColor: colors.border,
+    borderRadius: borderRadius.round,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.round,
   },
 });
