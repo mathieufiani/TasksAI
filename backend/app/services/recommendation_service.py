@@ -125,8 +125,18 @@ Return the structured context as JSON."""
 
         # Calculate normalized score (0-1)
         if matching_labels:
-            # Average score weighted by number of matches
-            match_score = min(1.0, weighted_score / len(user_labels))
+            # Score based on:
+            # 1. Number of matches (more matches = better)
+            # 2. Average confidence of matching labels
+            # 3. Percentage of user context that's matched
+            match_percentage = len(matching_labels) / len(user_labels)
+            avg_confidence = weighted_score / len(matching_labels)
+
+            # Boost score for tasks with multiple strong matches
+            match_bonus = min(0.3, len(matching_labels) * 0.1)
+
+            # Final score: weighted combination
+            match_score = min(1.0, (match_percentage * 0.4) + (avg_confidence * 0.5) + match_bonus)
         else:
             match_score = 0.0
 
