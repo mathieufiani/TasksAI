@@ -16,6 +16,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from '@react-native-vector-icons/ionicons';
 import { TodoScreen } from './src/screens/TodoScreen';
 import { ChatBotScreen } from './src/screens/ChatBotScreen';
 import colors from './src/theme/colors';
@@ -36,13 +37,14 @@ function App() {
       <SafeAreaProvider>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingContent}>
-            <Text style={styles.loadingEmoji}>✨</Text>
+            <Icon name="checkmark-circle" size={64} color={colors.primary} />
             <ActivityIndicator
               size="large"
               color={colors.primary}
+              style={{ marginTop: spacing.lg }}
             />
             <Text style={styles.loadingText}>
-              TasksAI is waking up...
+              Loading TasksAI...
             </Text>
           </View>
         </View>
@@ -58,23 +60,17 @@ function App() {
           screenOptions={{
             headerShown: false,
             tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.textSecondary,
+            tabBarInactiveTintColor: colors.textTertiary,
             tabBarStyle: {
               backgroundColor: colors.surface,
-              borderTopWidth: 0,
-              elevation: 20,
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 1,
-              shadowRadius: 12,
-              height: 90,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+              height: 80,
               paddingBottom: spacing.lg,
               paddingTop: spacing.sm,
-              borderTopLeftRadius: borderRadius.lg,
-              borderTopRightRadius: borderRadius.lg,
             },
             tabBarLabelStyle: {
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: '600',
               marginTop: 4,
             },
@@ -84,12 +80,11 @@ function App() {
             component={TodoScreen}
             options={{
               tabBarIcon: ({ color, focused }) => (
-                <View style={[
-                  styles.tabIconContainer,
-                  focused && styles.tabIconContainerActive,
-                ]}>
-                  <Text style={{ fontSize: 24, color }}>✓</Text>
-                </View>
+                <Icon
+                  name={focused ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                  size={26}
+                  color={color}
+                />
               ),
             }}
           />
@@ -98,12 +93,11 @@ function App() {
             component={ChatBotScreen}
             options={{
               tabBarIcon: ({ color, focused }) => (
-                <View style={[
-                  styles.tabIconContainer,
-                  focused && styles.tabIconContainerActive,
-                ]}>
-                  <Text style={{ fontSize: 24, color }}>💬</Text>
-                </View>
+                <Icon
+                  name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
+                  size={26}
+                  color={color}
+                />
               ),
             }}
           />
@@ -128,28 +122,14 @@ const styles = StyleSheet.create({
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
-    shadowRadius: 16,
+    shadowRadius: 8,
     elevation: 8,
-  },
-  loadingEmoji: {
-    fontSize: 64,
-    marginBottom: spacing.md,
   },
   loadingText: {
     marginTop: spacing.md,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: colors.textPrimary,
-  },
-  tabIconContainer: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: borderRadius.md,
-  },
-  tabIconContainerActive: {
-    backgroundColor: colors.primaryLight,
   },
 });
 

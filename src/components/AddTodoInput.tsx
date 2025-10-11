@@ -6,6 +6,7 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
+import Icon from '@react-native-vector-icons/ionicons';
 import { Priority } from '../types/Todo';
 import { PrioritySelector } from './PrioritySelector';
 import { DatePicker } from './DatePicker';
@@ -36,41 +37,63 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
     <View style={styles.container}>
       <View style={styles.inputContainer}>
         <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            value={text}
-            onChangeText={setText}
-            placeholder="✏️ Add a new task..."
-            placeholderTextColor={colors.textSecondary}
-            onSubmitEditing={handleAdd}
-            returnKeyType="done"
-          />
+          <View style={styles.inputWrapper}>
+            <Icon
+              name="add-circle-outline"
+              size={20}
+              color={colors.textTertiary}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              value={text}
+              onChangeText={setText}
+              placeholder="Add a new task..."
+              placeholderTextColor={colors.textTertiary}
+              onSubmitEditing={handleAdd}
+              returnKeyType="done"
+            />
+          </View>
+
           <TouchableOpacity
             style={styles.optionsButton}
             onPress={() => setShowOptions(!showOptions)}>
-            <Text style={styles.optionsButtonText}>
-              {showOptions ? '▼' : '▶'}
-            </Text>
+            <Icon
+              name={showOptions ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color={colors.textSecondary}
+            />
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.button, !text.trim() && styles.buttonDisabled]}
             onPress={handleAdd}
             disabled={!text.trim()}>
-            <Text style={styles.buttonText}>+</Text>
+            <Icon
+              name="arrow-up"
+              size={24}
+              color={colors.textOnPrimary}
+            />
           </TouchableOpacity>
         </View>
 
         {showOptions && (
           <View style={styles.optionsContainer}>
-            <Text style={styles.optionsLabel}>
-              Priority
-            </Text>
-            <PrioritySelector priority={priority} onSelect={setPriority} />
+            <View style={styles.optionSection}>
+              <View style={styles.optionHeader}>
+                <Icon name="flag-outline" size={16} color={colors.textSecondary} />
+                <Text style={styles.optionsLabel}>Priority</Text>
+              </View>
+              <PrioritySelector priority={priority} onSelect={setPriority} />
+            </View>
 
-            <Text style={[styles.optionsLabel, styles.optionsLabelMargin]}>
-              Deadline
-            </Text>
-            <DatePicker date={deadline} onSelect={setDeadline} />
+            <View style={styles.optionSection}>
+              <View style={styles.optionHeader}>
+                <Icon name="calendar-outline" size={16} color={colors.textSecondary} />
+                <Text style={styles.optionsLabel}>Deadline</Text>
+              </View>
+              <DatePicker date={deadline} onSelect={setDeadline} />
+            </View>
           </View>
         )}
       </View>
@@ -81,10 +104,10 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
 const styles = StyleSheet.create({
   container: {
     padding: spacing.lg,
+    paddingTop: spacing.md,
     backgroundColor: colors.surface,
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    ...shadows.large,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   inputContainer: {
     width: '100%',
@@ -92,66 +115,79 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
+  },
+  inputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    height: 48,
+  },
+  inputIcon: {
+    marginRight: spacing.xs,
   },
   input: {
     flex: 1,
-    height: 56,
-    borderRadius: borderRadius.round,
-    paddingHorizontal: spacing.lg,
+    height: '100%',
     fontSize: fontSize.md,
-    backgroundColor: colors.background,
     color: colors.textPrimary,
-    marginRight: spacing.sm,
-    borderWidth: 2,
-    borderColor: colors.border,
     fontWeight: fontWeight.medium as any,
   },
   optionsButton: {
-    width: 44,
-    height: 56,
-    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.backgroundAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
     alignItems: 'center',
-    marginRight: spacing.sm,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.primaryLight,
-  },
-  optionsButtonText: {
-    fontSize: fontSize.md,
-    color: colors.primary,
-    fontWeight: fontWeight.bold as any,
+    justifyContent: 'center',
   },
   button: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.round,
-    backgroundColor: colors.secondary,
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.medium,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   buttonDisabled: {
     backgroundColor: colors.border,
-  },
-  buttonText: {
-    color: colors.textOnPrimary,
-    fontSize: 32,
-    fontWeight: fontWeight.normal as any,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   optionsContainer: {
     marginTop: spacing.md,
     padding: spacing.md,
     backgroundColor: colors.backgroundAlt,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.md,
+  },
+  optionSection: {
+    gap: spacing.sm,
+  },
+  optionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   optionsLabel: {
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.bold as any,
+    fontWeight: fontWeight.semibold as any,
     color: colors.textSecondary,
-    marginBottom: spacing.sm,
     textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  optionsLabelMargin: {
-    marginTop: spacing.md,
+    letterSpacing: 0.5,
   },
 });

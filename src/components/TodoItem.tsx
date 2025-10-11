@@ -6,8 +6,11 @@ import {
   StyleSheet,
   useColorScheme,
 } from 'react-native';
+import Icon from '@react-native-vector-icons/ionicons';
 import { Todo } from '../types/Todo';
 import { LabelList } from './LabelChip';
+import colors from '../theme/colors';
+import { spacing, borderRadius, fontSize, fontWeight } from '../theme/styles';
 
 interface TodoItemProps {
   todo: Todo;
@@ -23,15 +26,28 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   const isDarkMode = useColorScheme() === 'dark';
 
   const getPriorityColor = () => {
-    switch (todo.priority) {
+    switch (todo.priority.toLowerCase()) {
       case 'high':
-        return '#FF3B30';
+        return colors.priorityHigh;
       case 'medium':
-        return '#FF9500';
+        return colors.priorityMedium;
       case 'low':
-        return '#34C759';
+        return colors.priorityLow;
       default:
-        return '#8E8E93';
+        return colors.priorityNone;
+    }
+  };
+
+  const getPriorityIcon = () => {
+    switch (todo.priority.toLowerCase()) {
+      case 'high':
+        return 'alert-circle';
+      case 'medium':
+        return 'warning';
+      case 'low':
+        return 'checkmark-circle';
+      default:
+        return 'radio-button-off';
     }
   };
 
@@ -61,43 +77,53 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        isDarkMode ? styles.containerDark : styles.containerLight,
-      ]}>
-      <TouchableOpacity
-        style={styles.checkbox}
-        onPress={() => onToggle(todo.id)}>
-        <View
-          style={[
-            styles.checkboxInner,
-            { borderColor: getPriorityColor() },
-            todo.completed && {
-              backgroundColor: getPriorityColor(),
-            },
-          ]}>
-          {todo.completed && <Text style={styles.checkmark}>✓</Text>}
-        </View>
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.leftSection}>
+        <TouchableOpacity
+          style={styles.checkbox}
+          onPress={() => onToggle(todo.id)}>
+          <Icon
+            name={todo.completed ? 'checkmark-circle' : 'ellipse-outline'}
+            size={28}
+            color={todo.completed ? colors.success : colors.border}
+          />
+        </TouchableOpacity>
+
+        <View style={[
+          styles.priorityIndicator,
+          { backgroundColor: getPriorityColor() }
+        ]} />
+      </View>
 
       <View style={styles.contentContainer}>
-        <Text
-          style={[
-            styles.text,
-            isDarkMode ? styles.textDark : styles.textLight,
-            todo.completed && styles.textCompleted,
-          ]}>
-          {todo.text}
-        </Text>
+        <View style={styles.textRow}>
+          <Text
+            style={[
+              styles.text,
+              todo.completed && styles.textCompleted,
+            ]}>
+            {todo.text}
+          </Text>
+          <Icon
+            name={getPriorityIcon()}
+            size={16}
+            color={getPriorityColor()}
+            style={styles.priorityIcon}
+          />
+        </View>
 
-        {todo.deadline && (
-          <View style={styles.metaContainer}>
+        <View style={styles.metaRow}>
+          {todo.deadline && (
             <View
               style={[
                 styles.deadlineBadge,
                 isOverdue(todo.deadline) && styles.deadlineBadgeOverdue,
               ]}>
+              <Icon
+                name="calendar-outline"
+                size={12}
+                color={isOverdue(todo.deadline) ? colors.danger : colors.textTertiary}
+              />
               <Text
                 style={[
                   styles.deadlineText,
@@ -106,8 +132,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 {formatDeadline(todo.deadline)}
               </Text>
             </View>
-          </View>
-        )}
+          )}
+        </View>
 
         <LabelList
           labels={todo.labels}
@@ -119,7 +145,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
       <TouchableOpacity
         style={styles.deleteButton}
         onPress={() => onDelete(todo.id)}>
-        <Text style={styles.deleteButtonText}>×</Text>
+        <Icon name="trash-outline" size={20} color={colors.danger} />
       </TouchableOpacity>
     </View>
   );
@@ -128,87 +154,84 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 4,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    alignItems: 'flex-start',
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    marginHorizontal: spacing.md,
+    marginVertical: spacing.xs,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
     elevation: 2,
   },
-  containerLight: {
-    backgroundColor: '#FFFFFF',
-  },
-  containerDark: {
-    backgroundColor: '#2C2C2E',
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: spacing.sm,
   },
   checkbox: {
-    marginRight: 12,
+    marginRight: spacing.xs,
   },
-  checkboxInner: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  priorityIndicator: {
+    width: 3,
+    height: 28,
+    borderRadius: 2,
   },
   contentContainer: {
     flex: 1,
+    paddingLeft: spacing.sm,
+  },
+  textRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.xs,
   },
   text: {
-    fontSize: 16,
-    flexWrap: 'wrap',
-  },
-  textLight: {
-    color: '#000000',
-  },
-  textDark: {
-    color: '#FFFFFF',
+    flex: 1,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.medium as any,
+    color: colors.textPrimary,
+    lineHeight: 22,
   },
   textCompleted: {
     textDecorationLine: 'line-through',
-    opacity: 0.5,
+    color: colors.textTertiary,
   },
-  metaContainer: {
+  priorityIcon: {
+    marginLeft: spacing.xs,
+    marginTop: 3,
+  },
+  metaRow: {
     flexDirection: 'row',
-    marginTop: 6,
     alignItems: 'center',
+    marginBottom: spacing.xs,
   },
   deadlineBadge: {
-    backgroundColor: '#E5E5EA',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+    gap: 4,
   },
   deadlineBadgeOverdue: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: colors.dangerLight,
   },
   deadlineText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#3C3C43',
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold as any,
+    color: colors.textSecondary,
   },
   deadlineTextOverdue: {
-    color: '#FF3B30',
+    color: colors.danger,
   },
   deleteButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteButtonText: {
-    color: '#FF3B30',
-    fontSize: 32,
-    fontWeight: '300',
+    padding: spacing.xs,
+    marginLeft: spacing.xs,
   },
 });

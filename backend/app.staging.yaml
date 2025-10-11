@@ -12,17 +12,17 @@ env_variables:
   API_V1_PREFIX: "/api/v1"
   BACKEND_CORS_ORIGINS: '["https://staging.yourapp.com","http://localhost:3000","http://localhost:8081"]'
 
-  # Database - Replace with your Cloud SQL or external database URL
-  DATABASE_URL: "postgresql://user:password@/dbname?host=/cloudsql/project:region:instance"
+  # Database - Cloud SQL PostgreSQL
+  DATABASE_URL: "postgresql://postgres:TasksAI2025SecurePassword@/tasksdb?host=/cloudsql/tasksai-474818:us-central1:tasksai-db"
   DATABASE_ECHO: "False"
 
-  # OpenAI - Set in GitHub Secrets
-  # OPENAI_API_KEY: will be set via environment variables
+  # OpenAI
+  OPENAI_API_KEY: "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"
   OPENAI_MODEL: "gpt-4"
   OPENAI_EMBEDDING_MODEL: "text-embedding-3-small"
 
-  # Pinecone - Set in GitHub Secrets
-  # PINECONE_API_KEY: will be set via environment variables
+  # Pinecone
+  PINECONE_API_KEY: "pcsk_5H7MDW_MPzHqwrdcxAfvE2aZ79GtXM7hqiFys5vit2hnGKC3RNjbdUjSSLipApQy4uDFts"
   PINECONE_INDEX_NAME: "task-recommendations-staging"
   PINECONE_NAMESPACE: "staging"
   PINECONE_CLOUD: "aws"

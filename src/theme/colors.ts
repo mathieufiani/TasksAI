@@ -1,76 +1,77 @@
 /**
- * Pastel Color Theme
- * Modern, gamified cartoon style with soft, friendly colors
+ * Professional Color Theme
+ * Clean, modern design with strong visual hierarchy
  */
 
 export const colors = {
-  // Pastel Primary Colors
-  primary: '#A8D5E2',      // Soft baby blue
-  primaryDark: '#7FBEDB',  // Slightly deeper blue
-  primaryLight: '#D4EDF4', // Very light blue
+  // Professional Primary Colors
+  primary: '#6366F1',      // Indigo - Modern and professional
+  primaryDark: '#4F46E5',  // Deeper indigo
+  primaryLight: '#A5B4FC', // Light indigo
 
-  // Pastel Secondary Colors
-  secondary: '#FFB6C1',    // Soft pink
-  secondaryDark: '#FF9DAA', // Deeper pink
-  secondaryLight: '#FFE4E8', // Light pink
+  // Professional Secondary Colors
+  secondary: '#8B5CF6',    // Purple - Complementary
+  secondaryDark: '#7C3AED', // Deep purple
+  secondaryLight: '#C4B5FD', // Light purple
 
   // Accent Colors
-  accent: '#FFE66D',       // Soft yellow
-  accentDark: '#FFD93D',   // Golden yellow
-  accentLight: '#FFF6C5',  // Pale yellow
+  accent: '#10B981',       // Emerald green - Success/growth
+  accentDark: '#059669',   // Deep emerald
+  accentLight: '#6EE7B7',  // Light emerald
 
   // Success & Status
-  success: '#98D8C8',      // Mint green
-  successLight: '#C7F0E1', // Pale mint
-  warning: '#FFB84D',      // Soft orange
-  warningLight: '#FFE4C4', // Peach
-  danger: '#FF9999',       // Soft red
-  dangerLight: '#FFCCCC',  // Light pink-red
+  success: '#10B981',      // Emerald green
+  successLight: '#D1FAE5', // Pale green
+  warning: '#F59E0B',      // Amber
+  warningLight: '#FEF3C7', // Pale amber
+  danger: '#EF4444',       // Red
+  dangerLight: '#FEE2E2', // Pale red
 
-  // Neutral Pastels
-  lavender: '#E6D5F0',     // Soft lavender
-  peach: '#FFDAB9',        // Soft peach
-  mint: '#D5F5E3',         // Pale mint
+  // Info
+  info: '#3B82F6',         // Blue
+  infoLight: '#DBEAFE',    // Pale blue
 
-  // Background Colors
-  background: '#FFF9F5',   // Warm white
-  backgroundAlt: '#F5F9FF', // Cool white
-  surface: '#FFFFFF',      // Pure white
-  surfaceAlt: '#FEFEFE',   // Off white
+  // Background Colors - Professional grayscale
+  background: '#F9FAFB',   // Very light gray
+  backgroundAlt: '#F3F4F6', // Light gray
+  surface: '#FFFFFF',      // Pure white for cards
+  surfaceAlt: '#F9FAFB',   // Off-white
 
-  // Text Colors
-  textPrimary: '#4A5568',  // Soft dark gray
-  textSecondary: '#A0AEC0', // Medium gray
-  textTertiary: '#CBD5E0', // Light gray
-  textOnPrimary: '#FFFFFF', // White text
+  // Text Colors - Strong hierarchy
+  textPrimary: '#111827',  // Almost black
+  textSecondary: '#6B7280', // Medium gray
+  textTertiary: '#9CA3AF', // Light gray
+  textOnPrimary: '#FFFFFF', // White text for colored backgrounds
+  textMuted: '#D1D5DB',    // Very light gray
 
-  // Priority Colors (Gamified)
-  priorityHigh: '#FF9999',    // Soft red
-  priorityMedium: '#FFB84D',  // Soft orange
-  priorityLow: '#98D8C8',     // Mint green
-  priorityNone: '#E2E8F0',    // Light gray
+  // Priority Colors
+  priorityHigh: '#EF4444',    // Red
+  priorityMedium: '#F59E0B',  // Amber
+  priorityLow: '#10B981',     // Emerald
+  priorityNone: '#9CA3AF',    // Gray
 
   // Shadow
-  shadow: 'rgba(74, 85, 104, 0.1)',
-  shadowDark: 'rgba(74, 85, 104, 0.2)',
+  shadow: 'rgba(17, 24, 39, 0.08)',
+  shadowMedium: 'rgba(17, 24, 39, 0.12)',
+  shadowLarge: 'rgba(17, 24, 39, 0.16)',
 
   // Overlay
-  overlay: 'rgba(255, 249, 245, 0.95)',
-  overlayDark: 'rgba(74, 85, 104, 0.8)',
+  overlay: 'rgba(17, 24, 39, 0.5)',
+  overlayLight: 'rgba(17, 24, 39, 0.25)',
 
   // Border
-  border: '#E6EDF3',
-  borderLight: '#F0F4F8',
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
+  borderFocus: '#6366F1',
 };
 
-// Gradients for gamification
+// Gradients for modern effects
 export const gradients = {
-  primary: ['#A8D5E2', '#7FBEDB'],
-  secondary: ['#FFB6C1', '#FF9DAA'],
-  accent: ['#FFE66D', '#FFD93D'],
-  success: ['#98D8C8', '#7DCDB7'],
-  warm: ['#FFDAB9', '#FFB6C1'],
-  cool: ['#A8D5E2', '#E6D5F0'],
+  primary: ['#6366F1', '#8B5CF6'],
+  success: ['#10B981', '#059669'],
+  warning: ['#F59E0B', '#EF4444'],
+  cool: ['#6366F1', '#3B82F6'],
+  dark: ['#111827', '#374151'],
 };
 
 export default colors;

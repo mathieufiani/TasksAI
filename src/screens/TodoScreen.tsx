@@ -8,6 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Icon from '@react-native-vector-icons/ionicons';
 import { Todo, Priority } from '../types/Todo';
 import { TodoList } from '../components/TodoList';
 import { AddTodoInput } from '../components/AddTodoInput';
@@ -166,31 +167,43 @@ export const TodoScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={0}>
-      <View style={[styles.header, { paddingTop: safeAreaInsets.top + spacing.md }]}>
+      <View style={[styles.header, { paddingTop: safeAreaInsets.top + spacing.lg }]}>
         <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.title}>
-              ✨ My Tasks
-            </Text>
+          <View style={styles.headerLeft}>
+            <View style={styles.titleRow}>
+              <Icon name="checkmark-circle" size={32} color={colors.primary} />
+              <Text style={styles.title}>Tasks</Text>
+            </View>
             <Text style={styles.subtitle}>
-              {activeCount} {activeCount === 1 ? 'task' : 'tasks'} to conquer!
+              {activeCount} active • {completedCount} completed
             </Text>
           </View>
-          <View style={styles.progressCircle}>
-            <Text style={styles.progressText}>
-              {completedCount}/{totalCount}
-            </Text>
+
+          <View style={styles.statsCard}>
+            <View style={styles.statRow}>
+              <Icon name="trophy" size={18} color={colors.accent} />
+              <Text style={styles.statValue}>{completedCount}</Text>
+            </View>
+            <Text style={styles.statLabel}>Done</Text>
           </View>
         </View>
 
         {totalCount > 0 && (
-          <View style={styles.progressBarContainer}>
-            <View
-              style={[
-                styles.progressBar,
-                { width: `${progress * 100}%` }
-              ]}
-            />
+          <View style={styles.progressSection}>
+            <View style={styles.progressInfo}>
+              <Text style={styles.progressLabel}>Progress</Text>
+              <Text style={styles.progressPercent}>
+                {Math.round(progress * 100)}%
+              </Text>
+            </View>
+            <View style={styles.progressBarContainer}>
+              <View
+                style={[
+                  styles.progressBar,
+                  { width: `${progress * 100}%` }
+                ]}
+              />
+            </View>
           </View>
         )}
       </View>
@@ -213,57 +226,91 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing.xl,
     backgroundColor: colors.surface,
-    borderBottomLeftRadius: borderRadius.xl,
-    borderBottomRightRadius: borderRadius.xl,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.lg,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
   title: {
     fontSize: fontSize.xxxl,
-    fontWeight: fontWeight.extrabold as any,
+    fontWeight: fontWeight.bold as any,
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.sm,
     fontWeight: fontWeight.medium as any,
     color: colors.textSecondary,
   },
-  progressCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.round,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
+  statsCard: {
+    backgroundColor: colors.backgroundAlt,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: colors.primary,
+    minWidth: 70,
   },
-  progressText: {
-    fontSize: fontSize.md,
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold as any,
+    color: colors.textPrimary,
+  },
+  statLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium as any,
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  progressSection: {
+    marginTop: spacing.sm,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  progressLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold as any,
+    color: colors.textSecondary,
+  },
+  progressPercent: {
+    fontSize: fontSize.sm,
     fontWeight: fontWeight.bold as any,
     color: colors.primary,
   },
   progressBarContainer: {
-    height: 12,
-    backgroundColor: colors.border,
+    height: 8,
+    backgroundColor: colors.borderLight,
     borderRadius: borderRadius.round,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: borderRadius.round,
   },
 });
