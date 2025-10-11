@@ -120,12 +120,6 @@ export const TodoScreen: React.FC = () => {
       // Add task with pending status - polling will update it automatically
       const newTodo = backendTaskToTodo(newTask, []);
       setTodos([newTodo, ...todos]);
-
-      // Show success message with AI labeling info
-      Alert.alert(
-        'Task Created!',
-        'AI is analyzing your task and generating smart labels. They will appear automatically when ready.',
-      );
     } catch (error) {
       console.error('Failed to create task:', error);
       Alert.alert('Error', 'Failed to create task. Please try again.');
