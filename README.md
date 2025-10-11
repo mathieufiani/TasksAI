@@ -1,3 +1,23 @@
+# TasksAI
+
+AI-powered Task Management System with intelligent labeling and recommendations.
+
+## Features
+
+- Task management with AI-powered auto-labeling using OpenAI GPT-4
+- Smart task recommendations using Pinecone vector search
+- FastAPI backend with PostgreSQL database
+- React Native mobile frontend (iOS & Android)
+- Automated CI/CD pipeline with GitHub Actions and Google Cloud Platform
+
+## Architecture
+
+- **Backend**: FastAPI (Python 3.11) with PostgreSQL
+- **AI/ML**: OpenAI for task labeling, Pinecone for vector similarity search
+- **Frontend**: React Native with TypeScript
+- **Deployment**: Google Cloud App Engine with automated CI/CD
+- **Testing**: Pytest for backend unit and integration tests
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
