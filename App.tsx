@@ -16,7 +16,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { TodoScreen } from './src/screens/TodoScreen';
+import { TasksStackNavigator } from './src/navigation/TasksStackNavigator';
 import { ChatBotScreen } from './src/screens/ChatBotScreen';
 import colors from './src/theme/colors';
 import { spacing, borderRadius } from './src/theme/styles';
@@ -90,7 +90,7 @@ function App() {
           }}>
           <Tab.Screen
             name="Tasks"
-            component={TodoScreen}
+            component={TasksStackNavigator}
             options={{
               tabBarIcon: TasksIcon,
             }}

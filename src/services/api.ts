@@ -132,6 +132,10 @@ class ApiService {
     return response.data;
   }
 
+  async deleteLabel(labelId: number): Promise<void> {
+    await this.client.delete(`${API_ENDPOINTS.LABELS}${labelId}`);
+  }
+
   // Fetch task with labels
   async getTaskWithLabels(taskId: number): Promise<BackendTask & { labels: Label[] }> {
     const [task, labels] = await Promise.all([

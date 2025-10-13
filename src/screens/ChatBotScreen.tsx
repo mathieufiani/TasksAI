@@ -15,8 +15,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChatMessage, RecommendationResponse } from '../types/Recommendation';
 import { getRecommendations } from '../api/recommendations';
 import { TypingText } from '../components/TypingText';
+import { apiService } from '../services/api';
+import { Todo } from '../types/Todo';
 
-export const ChatBotScreen: React.FC = () => {
+interface ChatBotScreenProps {
+  navigation: any;
+}
+
+export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
   const safeAreaInsets = useSafeAreaInsets();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -31,6 +37,44 @@ export const ChatBotScreen: React.FC = () => {
   const [latestAssistantMessageId, setLatestAssistantMessageId] = useState<string>('1');
   const flatListRef = useRef<FlatList>(null);
   const isDarkMode = useColorScheme() === 'dark';
+
+  const handleRecommendationPress = async (taskId: number) => {
+    try {
+      // Fetch the full task details
+      const backendTask = await apiService.getTask(taskId);
+      const labels = await apiService.getTaskLabels(taskId);
+
+      // Convert backend task to frontend Todo format
+      const todo: Todo = {
+        id: backendTask.id.toString(),
+        text: backendTask.title,
+        completed: backendTask.completed,
+        priority: apiService.priorityToFrontend(backendTask.priority),
+        createdAt: new Date(backendTask.created_at),
+        deadline: backendTask.due_date ? new Date(backendTask.due_date) : undefined,
+        labels: labels,
+        labelingStatus: backendTask.labeling_status,
+      };
+
+      // Navigate to TaskDetail screen in the Tasks stack
+      navigation.navigate('Tasks', {
+        screen: 'TaskDetail',
+        params: {
+          todo,
+          onUpdate: (updatedTodo: Todo) => {
+            // No-op for now, could update local state if needed
+            console.log('Task updated from ChatBot:', updatedTodo);
+          },
+          onDelete: (id: string) => {
+            // No-op for now, could update local state if needed
+            console.log('Task deleted from ChatBot:', id);
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error navigating to task:', error);
+    }
+  };
 
   const handleSend = async () => {
     if (!inputText.trim() || isLoading) return;
@@ -104,11 +148,11 @@ export const ChatBotScreen: React.FC = () => {
             <TypingText
               text={item.text}
               speed={30}
-              style={[
-                styles.messageText,
-                styles.assistantMessageText,
-                isDarkMode && styles.assistantMessageTextDark,
-              ]}
+              style={
+                isDarkMode
+                  ? [styles.messageText, styles.assistantMessageText, styles.assistantMessageTextDark]
+                  : [styles.messageText, styles.assistantMessageText]
+              }
             />
           ) : (
             <Text
@@ -128,7 +172,12 @@ export const ChatBotScreen: React.FC = () => {
                 Recommended Tasks:
               </Text>
               {item.recommendations.map((rec, index) => (
-                <View key={rec.task_id} style={styles.recommendationCard}>
+                <TouchableOpacity
+                  key={rec.task_id}
+                  style={styles.recommendationCard}
+                  onPress={() => handleRecommendationPress(rec.task_id)}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.recommendationHeader}>
                     <Text style={[styles.recommendationTitle, isDarkMode && styles.recommendationTitleDark]}>
                       {index + 1}. {rec.title}
@@ -149,7 +198,7 @@ export const ChatBotScreen: React.FC = () => {
                       </View>
                     ))}
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           )}

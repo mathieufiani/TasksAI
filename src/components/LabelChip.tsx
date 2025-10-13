@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, useColorScheme, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, useColorScheme, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Label, LabelingStatus } from '../types/Todo';
 
 interface LabelChipProps {
   label?: Label;
   status?: LabelingStatus;
   isPending?: boolean;
+  isEditable?: boolean;
+  onDelete?: (labelId: number) => void;
 }
 
 // Color mapping for label categories
@@ -27,7 +29,7 @@ const getCategoryColor = (category: string, isDark: boolean) => {
   return colors[category as keyof typeof colors] || colors.default;
 };
 
-export const LabelChip: React.FC<LabelChipProps> = ({ label, status, isPending }) => {
+export const LabelChip: React.FC<LabelChipProps> = ({ label, status, isPending, isEditable, onDelete }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
   // Show "pending" label if labeling is in progress
@@ -55,9 +57,23 @@ export const LabelChip: React.FC<LabelChipProps> = ({ label, status, isPending }
   if (label) {
     const backgroundColor = getCategoryColor(label.label_category, isDarkMode);
 
+    const chipContent = (
+      <>
+        <Text style={styles.chipText}>{label.label_name}</Text>
+        {isEditable && onDelete && (
+          <TouchableOpacity
+            onPress={() => onDelete(label.id)}
+            style={styles.deleteButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={styles.deleteText}>×</Text>
+          </TouchableOpacity>
+        )}
+      </>
+    );
+
     return (
       <View style={[styles.chip, { backgroundColor }]}>
-        <Text style={styles.chipText}>{label.label_name}</Text>
+        {chipContent}
       </View>
     );
   }
@@ -69,12 +85,16 @@ interface LabelListProps {
   labels?: Label[];
   labelingStatus?: LabelingStatus;
   maxVisible?: number;
+  isEditable?: boolean;
+  onDeleteLabel?: (labelId: number) => void;
 }
 
 export const LabelList: React.FC<LabelListProps> = ({
   labels,
   labelingStatus,
-  maxVisible = 5
+  maxVisible = 5,
+  isEditable,
+  onDeleteLabel
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -90,15 +110,20 @@ export const LabelList: React.FC<LabelListProps> = ({
     );
   }
 
-  const visibleLabels = highConfidenceLabels.slice(0, maxVisible);
+  const visibleLabels = isEditable ? highConfidenceLabels : highConfidenceLabels.slice(0, maxVisible);
   const remainingCount = highConfidenceLabels.length - maxVisible;
 
   return (
     <View style={styles.labelContainer}>
       {visibleLabels.map((label) => (
-        <LabelChip key={label.id} label={label} />
+        <LabelChip
+          key={label.id}
+          label={label}
+          isEditable={isEditable}
+          onDelete={onDeleteLabel}
+        />
       ))}
-      {remainingCount > 0 && (
+      {!isEditable && remainingCount > 0 && (
         <View style={[styles.chip, styles.moreChip, isDarkMode && styles.moreChipDark]}>
           <Text style={[styles.chipText, styles.moreText, isDarkMode && styles.moreTextDark]}>
             +{remainingCount}
@@ -165,5 +190,18 @@ const styles = StyleSheet.create({
   },
   moreTextDark: {
     color: '#AEAEB2',
+  },
+  deleteButton: {
+    marginLeft: 4,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    lineHeight: 16,
   },
 });

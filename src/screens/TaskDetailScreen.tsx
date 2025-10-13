@@ -106,6 +106,22 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
     );
   };
 
+  const handleDeleteLabel = async (labelId: number) => {
+    try {
+      await apiService.deleteLabel(labelId);
+
+      // Update local todo state by filtering out the deleted label
+      const updatedLabels = todo.labels?.filter(label => label.id !== labelId) || [];
+      const updatedTodo = { ...todo, labels: updatedLabels };
+
+      setTodo(updatedTodo);
+      onUpdate(updatedTodo);
+    } catch (error) {
+      console.error('Failed to delete label:', error);
+      Alert.alert('Error', 'Failed to delete label. Please try again.');
+    }
+  };
+
   const getPriorityColor = () => {
     switch (todo.priority.toLowerCase()) {
       case 'high':
@@ -266,7 +282,9 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             <LabelList
               labels={todo.labels}
               labelingStatus={todo.labelingStatus}
-              maxVisible={10}
+              maxVisible={isEditing ? undefined : 10}
+              isEditable={isEditing}
+              onDeleteLabel={handleDeleteLabel}
             />
           </View>
         )}

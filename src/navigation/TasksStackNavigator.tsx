@@ -24,3 +24,5 @@ export const TasksStackNavigator: React.FC = () => {
     </Stack.Navigator>
   );
 };
+
+export default TasksStackNavigator;

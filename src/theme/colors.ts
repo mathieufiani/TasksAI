@@ -54,6 +54,7 @@ export const colors = {
   shadow: 'rgba(17, 24, 39, 0.08)',
   shadowMedium: 'rgba(17, 24, 39, 0.12)',
   shadowLarge: 'rgba(17, 24, 39, 0.16)',
+  shadowDark: 'rgba(17, 24, 39, 0.20)',
 
   // Overlay
   overlay: 'rgba(17, 24, 39, 0.5)',
