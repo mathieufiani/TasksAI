@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChatMessage, RecommendationResponse } from '../types/Recommendation';
+import Toast from 'react-native-toast-message';
+import { ChatMessage, RecommendationResponse, TaskSuggestion } from '../types/Recommendation';
 import { getRecommendations } from '../api/recommendations';
 import { TypingText } from '../components/TypingText';
 import { apiService } from '../services/api';
@@ -35,6 +36,8 @@ export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [latestAssistantMessageId, setLatestAssistantMessageId] = useState<string>('1');
+  const [typingCompleteForMessage, setTypingCompleteForMessage] = useState<Record<string, boolean>>({ '1': true });
+  const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(new Set());
   const flatListRef = useRef<FlatList>(null);
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -76,6 +79,43 @@ export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
     }
   };
 
+  const handleAddSuggestion = async (suggestion: TaskSuggestion, suggestionKey: string) => {
+    try {
+      // Create task from suggestion
+      const newTask = await apiService.createTask({
+        title: suggestion.title,
+        description: suggestion.description || undefined,
+        priority: suggestion.suggested_priority as 'low' | 'medium' | 'high',
+        due_date: suggestion.suggested_due_date || undefined,
+      });
+
+      // Mark this suggestion as added
+      setAddedSuggestions(prev => new Set([...prev, suggestionKey]));
+
+      // Show success toast
+      Toast.show({
+        type: 'success',
+        text1: 'Task Added!',
+        text2: `"${suggestion.title}" has been added to your backlog`,
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
+
+      console.log('Task created:', newTask);
+    } catch (error) {
+      console.error('Error adding suggestion:', error);
+
+      // Show error toast
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add task. Please try again.',
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
+    }
+  };
+
   const handleSend = async () => {
     if (!inputText.trim() || isLoading) return;
 
@@ -98,6 +138,7 @@ export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
         type: 'assistant',
         text: response.message,
         recommendations: response.recommendations,
+        suggestions: response.suggestions,
         timestamp: new Date(),
       };
 
@@ -125,9 +166,20 @@ export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
     }
   };
 
+  const handleTypingComplete = useCallback((messageId: string) => {
+    setTypingCompleteForMessage(prev => {
+      // Only update if not already complete to avoid infinite loop
+      if (prev[messageId]) {
+        return prev;
+      }
+      return { ...prev, [messageId]: true };
+    });
+  }, []);
+
   const renderMessage = ({ item }: { item: ChatMessage }) => {
     const isUser = item.type === 'user';
     const shouldAnimate = !isUser && item.id === latestAssistantMessageId;
+    const isTypingComplete = typingCompleteForMessage[item.id] || false;
 
     return (
       <View
@@ -147,12 +199,13 @@ export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
           {shouldAnimate ? (
             <TypingText
               text={item.text}
-              speed={30}
+              speed={15}
               style={
                 isDarkMode
                   ? [styles.messageText, styles.assistantMessageText, styles.assistantMessageTextDark]
                   : [styles.messageText, styles.assistantMessageText]
               }
+              onComplete={() => handleTypingComplete(item.id)}
             />
           ) : (
             <Text
@@ -166,7 +219,7 @@ export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
             </Text>
           )}
 
-          {item.recommendations && item.recommendations.length > 0 && (
+          {isTypingComplete && item.recommendations && item.recommendations.length > 0 && (
             <View style={styles.recommendationsContainer}>
               <Text style={[styles.recommendationsTitle, isDarkMode && styles.recommendationsTitleDark]}>
                 Recommended Tasks:
@@ -200,6 +253,58 @@ export const ChatBotScreen: React.FC<ChatBotScreenProps> = ({ navigation }) => {
                   </View>
                 </TouchableOpacity>
               ))}
+            </View>
+          )}
+
+          {isTypingComplete && item.suggestions && item.suggestions.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              <Text style={[styles.suggestionsTitle, isDarkMode && styles.suggestionsTitleDark]}>
+                New Task Suggestions:
+              </Text>
+              {item.suggestions.map((sug, index) => {
+                const suggestionKey = `${item.id}-${index}`;
+                const isAdded = addedSuggestions.has(suggestionKey);
+
+                return (
+                  <View
+                    key={index}
+                    style={styles.suggestionCard}
+                  >
+                    <View style={styles.suggestionHeader}>
+                      <Text style={[styles.suggestionTitle, isDarkMode && styles.suggestionTitleDark]}>
+                        {index + 1}. {sug.title}
+                      </Text>
+                    </View>
+                    {sug.description && (
+                      <Text style={[styles.suggestionDescription, isDarkMode && styles.suggestionDescriptionDark]}>
+                        {sug.description}
+                      </Text>
+                    )}
+                    <Text style={[styles.suggestionReasoning, isDarkMode && styles.suggestionReasoningDark]}>
+                      {sug.reasoning}
+                    </Text>
+                    <View style={styles.suggestionFooter}>
+                      <View style={styles.suggestionLabelsContainer}>
+                        {sug.suggested_labels.map((label) => (
+                          <View key={label} style={styles.suggestionLabelChip}>
+                            <Text style={styles.suggestionLabelText}>{label}</Text>
+                          </View>
+                        ))}
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.addButton, isAdded && styles.addButtonAdded]}
+                        onPress={() => handleAddSuggestion(sug, suggestionKey)}
+                        activeOpacity={0.7}
+                        disabled={isAdded}
+                      >
+                        <Text style={styles.addButtonText}>
+                          {isAdded ? '✓ Task Added' : 'Add to Backlog'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
             </View>
           )}
         </View>
@@ -414,6 +519,94 @@ const styles = StyleSheet.create({
   sendButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  suggestionsContainer: {
+    marginTop: 16,
+  },
+  suggestionsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  suggestionsTitleDark: {
+    color: '#FFFFFF',
+  },
+  suggestionCard: {
+    backgroundColor: '#F9F9FB',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  suggestionHeader: {
+    marginBottom: 6,
+  },
+  suggestionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  suggestionTitleDark: {
+    color: '#000000',
+  },
+  suggestionDescription: {
+    fontSize: 13,
+    color: '#666666',
+    marginBottom: 6,
+    lineHeight: 17,
+  },
+  suggestionDescriptionDark: {
+    color: '#666666',
+  },
+  suggestionReasoning: {
+    fontSize: 14,
+    color: '#888888',
+    marginBottom: 8,
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
+  suggestionReasoningDark: {
+    color: '#888888',
+  },
+  suggestionFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  suggestionLabelsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    flex: 1,
+    marginRight: 8,
+  },
+  suggestionLabelChip: {
+    backgroundColor: '#8B5CF6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  suggestionLabelText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  addButton: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  addButtonAdded: {
+    backgroundColor: '#6B7280',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '600',
   },
 });

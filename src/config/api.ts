@@ -7,14 +7,15 @@ import { Platform } from 'react-native';
 
 // Production API URL - deployed on Google Cloud App Engine
 const PRODUCTION_API_URL = 'https://tasksai-474818.uc.r.appspot.com';
-const LOCAL_DEV_URL_IOS = 'http://192.168.3.142:8000';
+const LOCAL_DEV_URL_IOS = 'http://localhost:8000';
 const LOCAL_DEV_URL_ANDROID = 'http://10.0.2.2:8000';
 
 // Check if running on a physical device by checking for localhost/simulator
 const isPhysicalDevice = () => {
   // On physical devices, we can't reach localhost, so we use production
   // This is a simple heuristic: assume physical device in most cases
-  return true;
+  // For develop branch, always use local backend in dev mode
+  return false;
 };
 
 const getBaseURL = () => {

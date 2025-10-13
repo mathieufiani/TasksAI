@@ -32,8 +32,19 @@ class TaskRecommendation(BaseModel):
     reasoning: str = Field(..., description="Why this task is recommended")
 
 
+class TaskSuggestion(BaseModel):
+    """AI-generated task suggestion"""
+    title: str = Field(..., min_length=1, description="Suggested task title")
+    description: Optional[str] = Field(None, description="Suggested task description")
+    suggested_priority: str = Field(..., description="Suggested priority (low, medium, high)")
+    suggested_due_date: Optional[str] = Field(None, description="Optional suggested due date (ISO format)")
+    suggested_labels: List[str] = Field(default_factory=list, description="Suggested labels for the task")
+    reasoning: str = Field(..., description="Why this task is suggested")
+
+
 class RecommendationResponse(BaseModel):
-    """Response with recommended tasks"""
+    """Response with recommended tasks and AI-generated suggestions"""
     user_context: ExtractedContext
     recommendations: List[TaskRecommendation]
+    suggestions: List[TaskSuggestion] = Field(default_factory=list, description="AI-generated task suggestions")
     message: str = Field(..., description="Natural language response to user")

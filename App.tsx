@@ -16,6 +16,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Toast from 'react-native-toast-message';
 import { TasksStackNavigator } from './src/navigation/TasksStackNavigator';
 import { ChatBotScreen } from './src/screens/ChatBotScreen';
 import colors from './src/theme/colors';
@@ -104,6 +105,7 @@ function App() {
           />
         </Tab.Navigator>
       </NavigationContainer>
+      <Toast />
     </SafeAreaProvider>
   );
 }

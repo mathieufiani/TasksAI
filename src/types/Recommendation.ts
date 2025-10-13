@@ -21,9 +21,19 @@ export interface TaskRecommendation {
   reasoning: string;
 }
 
+export interface TaskSuggestion {
+  title: string;
+  description: string | null;
+  suggested_priority: string;
+  suggested_due_date: string | null;
+  suggested_labels: string[];
+  reasoning: string;
+}
+
 export interface RecommendationResponse {
   user_context: ExtractedContext;
   recommendations: TaskRecommendation[];
+  suggestions: TaskSuggestion[];
   message: string;
 }
 
@@ -32,5 +42,6 @@ export interface ChatMessage {
   type: 'user' | 'assistant';
   text: string;
   recommendations?: TaskRecommendation[];
+  suggestions?: TaskSuggestion[];
   timestamp: Date;
 }

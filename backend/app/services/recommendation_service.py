@@ -10,7 +10,7 @@ from openai import AsyncOpenAI
 
 from app.models.task import Task, TaskLabel, TaskStatus
 from app.schemas.recommendation import (
-    UserContextMessage, ExtractedContext, TaskRecommendation, RecommendationResponse
+    UserContextMessage, ExtractedContext, TaskRecommendation, TaskSuggestion, RecommendationResponse
 )
 from app.core.config import settings
 
@@ -142,6 +142,86 @@ Return the structured context as JSON."""
 
         return match_score, matching_labels
 
+    async def generate_task_suggestions(
+        self,
+        user_context: ExtractedContext,
+        user_message: str,
+        num_suggestions: int = 3
+    ) -> List[TaskSuggestion]:
+        """
+        Generate new task suggestions using LLM based on user's context
+
+        Args:
+            user_context: Extracted context from user message
+            user_message: Original user message
+            num_suggestions: Number of suggestions to generate
+
+        Returns:
+            List of TaskSuggestion objects
+        """
+        system_prompt = """You are a productivity assistant that suggests new tasks based on the user's current context.
+
+Generate personalized task suggestions that:
+- Match the user's location, energy level, mood, and available time
+- Are actionable and specific
+- Include appropriate labels for context
+- Have a suggested priority (low, medium, or high)
+- Include brief reasoning for why this task is suggested
+
+Consider the user's situation holistically and suggest tasks that would be beneficial for their productivity, wellbeing, or personal growth."""
+
+        user_prompt = f"""Based on the user's current situation, suggest {num_suggestions} new tasks they should consider adding to their to-do list.
+
+User said: "{user_message}"
+
+Extracted context:
+- Location: {user_context.location or 'unspecified'}
+- Time of day: {user_context.time_of_day or 'unspecified'}
+- Energy level: {user_context.energy_level or 'unspecified'}
+- Mood: {user_context.mood or 'unspecified'}
+- Time available: {user_context.duration_available or 'unspecified'}
+- Other context: {', '.join(user_context.other_labels) if user_context.other_labels else 'none'}
+
+Return ONLY valid JSON in this exact format:
+{{
+  "suggestions": [
+    {{
+      "title": "Task title",
+      "description": "Brief description of what to do",
+      "suggested_priority": "low|medium|high",
+      "suggested_due_date": "ISO date string or null",
+      "suggested_labels": ["label1", "label2"],
+      "reasoning": "One sentence explaining why this task is suggested"
+    }}
+  ]
+}}
+
+Make the suggestions practical, achievable in the given context, and aligned with the user's current situation."""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+
+            content = response.choices[0].message.content
+            parsed = json.loads(content)
+
+            suggestions = []
+            for suggestion_data in parsed.get('suggestions', []):
+                suggestions.append(TaskSuggestion(**suggestion_data))
+
+            return suggestions
+
+        except Exception as e:
+            print(f"Error generating task suggestions: {str(e)}")
+            return []
+
     async def recommend_tasks(
         self,
         user_message: UserContextMessage,
@@ -212,12 +292,20 @@ Return the structured context as JSON."""
                 reasoning=reasoning
             ))
 
+        # Generate task suggestions
+        suggestions = await self.generate_task_suggestions(
+            user_context,
+            user_message.message,
+            num_suggestions=3
+        )
+
         # Generate response message
-        if recommendations:
+        if recommendations or suggestions:
             response_message = await self._generate_response_message(
                 user_message.message,
                 user_context,
-                recommendations
+                recommendations,
+                suggestions
             )
         else:
             response_message = "I couldn't find any tasks that match your current context. Try describing your situation differently, or add more tasks to your list!"
@@ -225,6 +313,7 @@ Return the structured context as JSON."""
         return RecommendationResponse(
             user_context=user_context,
             recommendations=recommendations,
+            suggestions=suggestions,
             message=response_message
         )
 
@@ -258,16 +347,18 @@ Write a brief, friendly explanation."""
         self,
         user_message: str,
         context: ExtractedContext,
-        recommendations: List[TaskRecommendation]
+        recommendations: List[TaskRecommendation],
+        suggestions: List[TaskSuggestion] = []
     ) -> str:
         """Generate friendly response message"""
-        prompt = f"""Generate a friendly, brief response to the user based on their message and the recommended tasks.
+        prompt = f"""Generate a friendly, brief response to the user based on their message and the recommended/suggested tasks.
 
 User said: "{user_message}"
 Extracted context: {context.model_dump_json()}
-Number of recommendations: {len(recommendations)}
+Number of recommendations from backlog: {len(recommendations)}
+Number of new task suggestions: {len(suggestions)}
 
-Write a natural, encouraging response (2-3 sentences max) that acknowledges their situation and introduces the recommendations."""
+Write a natural, encouraging response (2-3 sentences max) that acknowledges their situation and introduces both the recommendations from their backlog and new task suggestions."""
 
         try:
             response = await self.client.chat.completions.create(
@@ -278,7 +369,12 @@ Write a natural, encouraging response (2-3 sentences max) that acknowledges thei
             )
             return response.choices[0].message.content.strip()
         except:
-            return f"Based on how you're feeling, I found {len(recommendations)} task(s) that might be perfect for you right now!"
+            parts = []
+            if recommendations:
+                parts.append(f"{len(recommendations)} task(s) from your backlog")
+            if suggestions:
+                parts.append(f"{len(suggestions)} new suggestion(s)")
+            return f"Based on how you're feeling, I found {' and '.join(parts)} that might be perfect for you right now!"
 
 
 # Global instance

@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Todo, Priority } from '../types/Todo';
 import { TodoList } from '../components/TodoList';
@@ -42,6 +42,13 @@ export const TodoScreen: React.FC = () => {
   useEffect(() => {
     loadTasks();
   }, []);
+
+  // Reload tasks when screen comes into focus (e.g., after adding from ChatBot)
+  useFocusEffect(
+    React.useCallback(() => {
+      loadTasks();
+    }, [])
+  );
 
   // Poll for label updates for tasks with pending/in_progress status
   useEffect(() => {
