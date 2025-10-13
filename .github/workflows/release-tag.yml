@@ -57,7 +57,12 @@ jobs:
 
       - name: Extract tag name
         id: tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          # Convert v1.0.0 to v1-0-0 (lowercase letters, digits, hyphens only)
+          VERSION_NAME=$(echo "$TAG_NAME" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -71,7 +76,7 @@ jobs:
 
       - name: Deploy to App Engine (Production)
         run: |
-          gcloud app deploy app.production.yaml --quiet --version=${{ steps.tag.outputs.TAG_NAME }} --promote
+          gcloud app deploy app.production.yaml --quiet --version=${{ steps.tag.outputs.VERSION_NAME }} --promote
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
