@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Todo, Priority } from '../types/Todo';
+import { SerializableTodo } from '../types/navigation';
 import { LabelList } from '../components/LabelChip';
 import { PrioritySelector } from '../components/PrioritySelector';
 import { DatePicker } from '../components/DatePicker';
@@ -20,7 +21,7 @@ import { apiService } from '../services/api';
 interface TaskDetailScreenProps {
   route: {
     params: {
-      todo: Todo;
+      todo: SerializableTodo;
       onUpdate: (updatedTodo: Todo) => void;
       onDelete: (id: string) => void;
     };
@@ -32,8 +33,15 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
   route,
   navigation,
 }) => {
-  const { todo: initialTodo, onUpdate, onDelete } = route.params;
+  const { todo: serializableTodo, onUpdate, onDelete } = route.params;
   const safeAreaInsets = useSafeAreaInsets();
+
+  // Deserialize dates from ISO strings to Date objects
+  const initialTodo: Todo = useMemo(() => ({
+    ...serializableTodo,
+    createdAt: new Date(serializableTodo.createdAt),
+    deadline: serializableTodo.deadline ? new Date(serializableTodo.deadline) : undefined,
+  }), [serializableTodo]);
 
   const [todo, setTodo] = useState<Todo>(initialTodo);
   const [isEditing, setIsEditing] = useState(false);

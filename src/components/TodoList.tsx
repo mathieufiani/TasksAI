@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, View, Text, StyleSheet, useColorScheme } from 'react-native';
+import { FlatList, View, Text, StyleSheet, useColorScheme, RefreshControl } from 'react-native';
 import { Todo } from '../types/Todo';
 import { TodoItem } from './TodoItem';
 
@@ -8,6 +8,8 @@ interface TodoListProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onPress?: (todo: Todo) => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export const TodoList: React.FC<TodoListProps> = ({
@@ -15,6 +17,8 @@ export const TodoList: React.FC<TodoListProps> = ({
   onToggle,
   onDelete,
   onPress,
+  refreshing = false,
+  onRefresh,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -64,6 +68,15 @@ export const TodoList: React.FC<TodoListProps> = ({
         <TodoItem todo={item} onToggle={onToggle} onDelete={onDelete} onPress={onPress} />
       )}
       contentContainerStyle={styles.listContainer}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#007AFF"
+          />
+        ) : undefined
+      }
     />
   );
 };
