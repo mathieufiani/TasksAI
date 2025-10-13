@@ -8,16 +8,21 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from '@react-native-vector-icons/ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { Todo, Priority } from '../types/Todo';
 import { TodoList } from '../components/TodoList';
 import { AddTodoInput } from '../components/AddTodoInput';
 import { apiService, BackendTask } from '../services/api';
 import colors from '../theme/colors';
-import { spacing, borderRadius, fontSize, fontWeight } from '../theme/styles';
+import { spacing, borderRadius, fontSize, fontWeight} from '../theme/styles';
+import { TasksStackParamList } from '../types/navigation';
+
+type TodoScreenNavigationProp = StackNavigationProp<TasksStackParamList, 'TodoList'>;
 
 export const TodoScreen: React.FC = () => {
   const safeAreaInsets = useSafeAreaInsets();
+  const navigation = useNavigation<TodoScreenNavigationProp>();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -157,6 +162,20 @@ export const TodoScreen: React.FC = () => {
     }
   };
 
+  const handleTodoPress = (todo: Todo) => {
+    navigation.navigate('TaskDetail', {
+      todo,
+      onUpdate: (updatedTodo: Todo) => {
+        setTodos(prevTodos =>
+          prevTodos.map(t => t.id === updatedTodo.id ? updatedTodo : t)
+        );
+      },
+      onDelete: (id: string) => {
+        setTodos(prevTodos => prevTodos.filter(t => t.id !== id));
+      },
+    });
+  };
+
   const activeCount = todos.filter(todo => !todo.completed).length;
   const completedCount = todos.filter(todo => todo.completed).length;
   const totalCount = todos.length;
@@ -171,7 +190,7 @@ export const TodoScreen: React.FC = () => {
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
             <View style={styles.titleRow}>
-              <Icon name="checkmark-circle" size={32} color={colors.primary} />
+              <Text style={{ fontSize: 32 }}>✅</Text>
               <Text style={styles.title}>Tasks</Text>
             </View>
             <Text style={styles.subtitle}>
@@ -181,7 +200,7 @@ export const TodoScreen: React.FC = () => {
 
           <View style={styles.statsCard}>
             <View style={styles.statRow}>
-              <Icon name="trophy" size={18} color={colors.accent} />
+              <Text style={{ fontSize: 18 }}>🏆</Text>
               <Text style={styles.statValue}>{completedCount}</Text>
             </View>
             <Text style={styles.statLabel}>Done</Text>
@@ -212,6 +231,7 @@ export const TodoScreen: React.FC = () => {
         todos={todos}
         onToggle={handleToggleTodo}
         onDelete={handleDeleteTodo}
+        onPress={handleTodoPress}
       />
 
       <AddTodoInput onAdd={handleAddTodo} />

@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import Icon from '@react-native-vector-icons/ionicons';
 import { Priority } from '../types/Todo';
 import { PrioritySelector } from './PrioritySelector';
 import { DatePicker } from './DatePicker';
@@ -38,12 +37,7 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
       <View style={styles.inputContainer}>
         <View style={styles.inputRow}>
           <View style={styles.inputWrapper}>
-            <Icon
-              name="add-circle-outline"
-              size={20}
-              color={colors.textTertiary}
-              style={styles.inputIcon}
-            />
+            <Text style={styles.inputIcon}>➕</Text>
             <TextInput
               style={styles.input}
               value={text}
@@ -58,22 +52,16 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
           <TouchableOpacity
             style={styles.optionsButton}
             onPress={() => setShowOptions(!showOptions)}>
-            <Icon
-              name={showOptions ? 'chevron-up' : 'chevron-down'}
-              size={20}
-              color={colors.textSecondary}
-            />
+            <Text style={{ fontSize: 20 }}>
+              {showOptions ? '🔼' : '🔽'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.button, !text.trim() && styles.buttonDisabled]}
             onPress={handleAdd}
             disabled={!text.trim()}>
-            <Icon
-              name="arrow-up"
-              size={24}
-              color={colors.textOnPrimary}
-            />
+            <Text style={{ fontSize: 24, color: colors.textOnPrimary }}>⬆️</Text>
           </TouchableOpacity>
         </View>
 
@@ -81,7 +69,7 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
           <View style={styles.optionsContainer}>
             <View style={styles.optionSection}>
               <View style={styles.optionHeader}>
-                <Icon name="flag-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 16 }}>🚩</Text>
                 <Text style={styles.optionsLabel}>Priority</Text>
               </View>
               <PrioritySelector priority={priority} onSelect={setPriority} />
@@ -89,7 +77,7 @@ export const AddTodoInput: React.FC<AddTodoInputProps> = ({ onAdd }) => {
 
             <View style={styles.optionSection}>
               <View style={styles.optionHeader}>
-                <Icon name="calendar-outline" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 16 }}>📅</Text>
                 <Text style={styles.optionsLabel}>Deadline</Text>
               </View>
               <DatePicker date={deadline} onSelect={setDeadline} />
@@ -130,6 +118,7 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: spacing.xs,
+    fontSize: 20,
   },
   input: {
     flex: 1,

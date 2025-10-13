@@ -7,12 +7,14 @@ interface TodoListProps {
   todos: Todo[];
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onPress?: (todo: Todo) => void;
 }
 
 export const TodoList: React.FC<TodoListProps> = ({
   todos,
   onToggle,
   onDelete,
+  onPress,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -59,7 +61,7 @@ export const TodoList: React.FC<TodoListProps> = ({
       data={sortedTodos}
       keyExtractor={item => item.id}
       renderItem={({ item }) => (
-        <TodoItem todo={item} onToggle={onToggle} onDelete={onDelete} />
+        <TodoItem todo={item} onToggle={onToggle} onDelete={onDelete} onPress={onPress} />
       )}
       contentContainerStyle={styles.listContainer}
     />

@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChatMessage, RecommendationResponse } from '../types/Recommendation';
 import { getRecommendations } from '../api/recommendations';
+import { TypingText } from '../components/TypingText';
 
 export const ChatBotScreen: React.FC = () => {
   const safeAreaInsets = useSafeAreaInsets();
@@ -27,6 +28,7 @@ export const ChatBotScreen: React.FC = () => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [latestAssistantMessageId, setLatestAssistantMessageId] = useState<string>('1');
   const flatListRef = useRef<FlatList>(null);
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -55,6 +57,7 @@ export const ChatBotScreen: React.FC = () => {
         timestamp: new Date(),
       };
 
+      setLatestAssistantMessageId(assistantMessage.id);
       setMessages((prev) => [...prev, assistantMessage]);
 
       // Auto-scroll to bottom
@@ -71,6 +74,7 @@ export const ChatBotScreen: React.FC = () => {
         timestamp: new Date(),
       };
 
+      setLatestAssistantMessageId(errorMessage.id);
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -79,6 +83,7 @@ export const ChatBotScreen: React.FC = () => {
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
     const isUser = item.type === 'user';
+    const shouldAnimate = !isUser && item.id === latestAssistantMessageId;
 
     return (
       <View
@@ -95,15 +100,27 @@ export const ChatBotScreen: React.FC = () => {
               : [styles.assistantBubble, isDarkMode && styles.assistantBubbleDark],
           ]}
         >
-          <Text
-            style={[
-              styles.messageText,
-              isUser ? styles.userMessageText : styles.assistantMessageText,
-              isDarkMode && !isUser && styles.assistantMessageTextDark,
-            ]}
-          >
-            {item.text}
-          </Text>
+          {shouldAnimate ? (
+            <TypingText
+              text={item.text}
+              speed={30}
+              style={[
+                styles.messageText,
+                styles.assistantMessageText,
+                isDarkMode && styles.assistantMessageTextDark,
+              ]}
+            />
+          ) : (
+            <Text
+              style={[
+                styles.messageText,
+                isUser ? styles.userMessageText : styles.assistantMessageText,
+                isDarkMode && !isUser && styles.assistantMessageTextDark,
+              ]}
+            >
+              {item.text}
+            </Text>
+          )}
 
           {item.recommendations && item.recommendations.length > 0 && (
             <View style={styles.recommendationsContainer}>

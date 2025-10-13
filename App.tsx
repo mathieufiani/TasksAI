@@ -16,7 +16,6 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Icon from '@react-native-vector-icons/ionicons';
 import { TodoScreen } from './src/screens/TodoScreen';
 import { ChatBotScreen } from './src/screens/ChatBotScreen';
 import colors from './src/theme/colors';
@@ -24,12 +23,26 @@ import { spacing, borderRadius } from './src/theme/styles';
 
 const Tab = createBottomTabNavigator();
 
+// Tab bar icon components
+const TasksIcon = ({ color, focused }: { color: string; focused: boolean }) => (
+  <Text style={[styles.tabIcon, { color }]}>
+    {focused ? '✅' : '☑️'}
+  </Text>
+);
+
+const AssistantIcon = ({ color, focused }: { color: string; focused: boolean }) => (
+  <Text style={[styles.tabIcon, { color }]}>
+    {focused ? '💬' : '💭'}
+  </Text>
+);
+
 function App() {
   const [loading, setLoading] = useState(true);
 
   // Give app time to initialize
   useEffect(() => {
-    setTimeout(() => setLoading(false), 100);
+    const timer = setTimeout(() => setLoading(false), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
@@ -37,11 +50,11 @@ function App() {
       <SafeAreaProvider>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingContent}>
-            <Icon name="checkmark-circle" size={64} color={colors.primary} />
+            <Text style={styles.loadingEmoji}>✅</Text>
             <ActivityIndicator
               size="large"
               color={colors.primary}
-              style={{ marginTop: spacing.lg }}
+              style={styles.loadingSpinner}
             />
             <Text style={styles.loadingText}>
               Loading TasksAI...
@@ -79,26 +92,14 @@ function App() {
             name="Tasks"
             component={TodoScreen}
             options={{
-              tabBarIcon: ({ color, focused }) => (
-                <Icon
-                  name={focused ? 'checkmark-circle' : 'checkmark-circle-outline'}
-                  size={26}
-                  color={color}
-                />
-              ),
+              tabBarIcon: TasksIcon,
             }}
           />
           <Tab.Screen
             name="Assistant"
             component={ChatBotScreen}
             options={{
-              tabBarIcon: ({ color, focused }) => (
-                <Icon
-                  name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
-                  size={26}
-                  color={color}
-                />
-              ),
+              tabBarIcon: AssistantIcon,
             }}
           />
         </Tab.Navigator>
@@ -125,11 +126,20 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
+  loadingEmoji: {
+    fontSize: 64,
+  },
+  loadingSpinner: {
+    marginTop: spacing.lg,
+  },
   loadingText: {
     marginTop: spacing.md,
     fontSize: 15,
     fontWeight: '600',
     color: colors.textPrimary,
+  },
+  tabIcon: {
+    fontSize: 24,
   },
 });
 

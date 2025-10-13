@@ -6,7 +6,6 @@ import {
   StyleSheet,
   useColorScheme,
 } from 'react-native';
-import Icon from '@react-native-vector-icons/ionicons';
 import { Todo } from '../types/Todo';
 import { LabelList } from './LabelChip';
 import colors from '../theme/colors';
@@ -16,12 +15,14 @@ interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onPress?: (todo: Todo) => void;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
   todo,
   onToggle,
   onDelete,
+  onPress,
 }) => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -41,13 +42,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   const getPriorityIcon = () => {
     switch (todo.priority.toLowerCase()) {
       case 'high':
-        return 'alert-circle';
+        return '🔴';
       case 'medium':
-        return 'warning';
+        return '🟡';
       case 'low':
-        return 'checkmark-circle';
+        return '🟢';
       default:
-        return 'radio-button-off';
+        return '⚪';
     }
   };
 
@@ -77,16 +78,20 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => onPress?.(todo)}
+      activeOpacity={0.7}>
       <View style={styles.leftSection}>
         <TouchableOpacity
           style={styles.checkbox}
-          onPress={() => onToggle(todo.id)}>
-          <Icon
-            name={todo.completed ? 'checkmark-circle' : 'ellipse-outline'}
-            size={28}
-            color={todo.completed ? colors.success : colors.border}
-          />
+          onPress={(e) => {
+            e.stopPropagation();
+            onToggle(todo.id);
+          }}>
+          <Text style={{ fontSize: 28 }}>
+            {todo.completed ? '⚫' : '⚪'}
+          </Text>
         </TouchableOpacity>
 
         <View style={[
@@ -104,12 +109,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({
             ]}>
             {todo.text}
           </Text>
-          <Icon
-            name={getPriorityIcon()}
-            size={16}
-            color={getPriorityColor()}
-            style={styles.priorityIcon}
-          />
+          <Text style={styles.priorityIcon}>
+            {getPriorityIcon()}
+          </Text>
         </View>
 
         <View style={styles.metaRow}>
@@ -119,11 +121,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 styles.deadlineBadge,
                 isOverdue(todo.deadline) && styles.deadlineBadgeOverdue,
               ]}>
-              <Icon
-                name="calendar-outline"
-                size={12}
-                color={isOverdue(todo.deadline) ? colors.danger : colors.textTertiary}
-              />
+              <Text style={{ fontSize: 12 }}>📅</Text>
               <Text
                 style={[
                   styles.deadlineText,
@@ -144,10 +142,13 @@ export const TodoItem: React.FC<TodoItemProps> = ({
 
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => onDelete(todo.id)}>
-        <Icon name="trash-outline" size={20} color={colors.danger} />
+        onPress={(e) => {
+          e.stopPropagation();
+          onDelete(todo.id);
+        }}>
+        <Text style={{ fontSize: 20 }}>🗑️</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 };
 
