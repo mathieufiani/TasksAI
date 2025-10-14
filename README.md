@@ -106,8 +106,11 @@ cp .env.example .env
 # Initialize database
 python -m app.database
 
-# Run migrations (if needed)
-# alembic upgrade head
+# Run user_id migration (if upgrading from older version)
+python migrate_add_user_id.py
+
+# Seed database with sample data (optional but recommended)
+python -m scripts.seed_data
 
 # Start development server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -607,10 +610,11 @@ TasksAI/
 ```bash
 # Backend
 cd backend
-python -m app.database        # Initialize DB
-python -m scripts.seed_data   # Seed sample data
-pytest                        # Run tests
-uvicorn app.main:app --reload # Dev server
+python -m app.database          # Initialize DB
+python migrate_add_user_id.py   # Run user_id migration (if needed)
+python -m scripts.seed_data     # Seed sample data
+pytest                          # Run tests
+uvicorn app.main:app --reload   # Dev server
 
 # Frontend
 npm start                     # Start Metro
