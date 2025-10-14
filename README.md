@@ -58,15 +58,15 @@ Many task management apps help you organize work but don't help you understand o
     ┌────┴────┬─────────────┬──────────────┐
     ↓         ↓             ↓              ↓
 ┌────────┐ ┌────────┐  ┌─────────┐  ┌──────────┐
-│Cloud SQL│ │ OpenAI │  │Pinecone │  │  GCP     │
-│Postgres│ │  API   │  │ Vector  │  │App Engine│
+│ SQLite │ │ OpenAI │  │Pinecone │  │  GCP     │
+│   DB   │ │  API   │  │ Vector  │  │App Engine│
 └────────┘ └────────┘  └─────────┘  └──────────┘
 ```
 
 **Tech Stack**:
 - **Frontend**: React Native 0.82, TypeScript, React Navigation
 - **Backend**: FastAPI (Python 3.11), SQLAlchemy, Pydantic
-- **Database**: Cloud SQL PostgreSQL (production), SQLite (local dev)
+- **Database**: SQLite (dev), PostgreSQL-ready (production migration planned)
 - **AI/ML**: OpenAI GPT-4o-mini, text-embedding-3-small, Pinecone vector DB
 - **Deployment**: Google Cloud App Engine, GitHub Actions CI/CD
 - **Testing**: Pytest, React Native Testing Library
@@ -119,8 +119,6 @@ API Documentation (Swagger): http://localhost:8000/docs
 
 ### 3. Frontend Setup
 
-#### Initial Setup
-
 ```bash
 # From project root
 npm install
@@ -129,83 +127,15 @@ npm install
 cd ios
 pod install
 cd ..
-```
 
-#### Running on iOS Simulator
-
-```bash
-# Method 1: Start Metro and run iOS in one command
-npm run ios
-
-# Method 2: Start Metro separately (recommended for development)
-# Terminal 1: Start Metro bundler
-npm start
-
-# Terminal 2: Run on iOS simulator
-npx react-native run-ios --simulator="iPhone 16 Pro"
-
-# Or use specific simulator
-npx react-native run-ios --simulator="iPhone 15"
-```
-
-**Note**: The app connects to the production backend by default (`https://tasksai-474818.appspot.com`).
-
-To use local backend instead:
-1. Open `src/config/api.ts`
-2. Uncomment lines 15-17:
-```typescript
-if (Platform.OS === 'ios') {
-  return LOCAL_DEV_URL_IOS;  // http://localhost:8000
-}
-```
-3. Rebuild the app
-
-#### Running on Physical iPhone
-
-**Prerequisites**:
-- Apple Developer account (free or paid)
-- iPhone with USB connection
-- Xcode installed
-
-**Steps**:
-
-1. **Open Xcode Workspace**
-```bash
-open ios/MyApp.xcworkspace
-```
-
-2. **Configure Signing** (in Xcode):
-   - Select `MyApp` project in left sidebar
-   - Select `MyApp` target
-   - Go to "Signing & Capabilities" tab
-   - Check "Automatically manage signing"
-   - Select your Team (Apple ID)
-
-3. **Connect iPhone**:
-   - Connect iPhone via USB
-   - Unlock phone and trust computer if prompted
-   - Select your iPhone from device dropdown in Xcode toolbar
-
-4. **Build and Run**:
-   - Click the "Play" button in Xcode, OR
-   - In terminal: `npx react-native run-ios --device="Your iPhone Name"`
-
-5. **Trust Developer** (first time only):
-   - On iPhone: Settings → General → VPN & Device Management
-   - Tap your Apple ID → Trust
-
-**Troubleshooting**:
-- If app crashes on launch, check Metro bundler is running: `npm start`
-- For "Network request failed" errors, ensure backend is accessible (production URL works from any network)
-- For local development, iPhone and Mac must be on same WiFi network
-
-#### Running on Android
-
-```bash
 # Start Metro bundler
 npm start
 
-# In another terminal:
+# In another terminal, run the app:
+# For iOS:
+npm run ios
+
+# For Android:
 npm run android
 ```
 
@@ -706,16 +636,16 @@ npm test                      # Run tests
 
 ## Known Limitations
 
-1. **Database**: Cloud SQL PostgreSQL instance available (`tasksai-db`, us-central1-c) but currently using SQLite in /tmp for simplicity. Migration to persistent Cloud SQL in progress.
+1. **SQLite in production**: Currently using SQLite in /tmp (data resets on instance restart). Migration to Cloud SQL PostgreSQL planned.
 2. **No pagination**: Task listing returns all tasks (fine for MVP, add pagination for scale)
-3. **Basic search**: No full-text search yet (will be enhanced with PostgreSQL full-text capabilities)
+3. **Basic search**: No full-text search yet (planned with PostgreSQL)
 4. **Single region**: Deployed only in us-east-1 (Pinecone) and us-central1 (GCP)
 
 ---
 
 ## Future Enhancements
 
-- [ ] Complete Cloud SQL PostgreSQL migration
+- [ ] PostgreSQL migration for persistent data
 - [ ] Real-time task updates (WebSockets)
 - [ ] Collaborative task sharing
 - [ ] Advanced filtering and search
@@ -728,7 +658,7 @@ npm test                      # Run tests
 ## Team
 
 **Developer**: Mathieu Fiani
-**Course**: NYU - Full Stack Development
+**Course**: NYU - Foundation Of Networks and Mobile Systems
 **Assignment**: #1 - AI-Powered Full-Stack Application
 
 ---
@@ -743,4 +673,4 @@ MIT License - See LICENSE file for details
 
 For issues or questions:
 - GitHub Issues: https://github.com/mathieufiani/TasksAI/issues
-- Email: mathieu.fiani@gmail.com
+- Email: mnf7282@nyu.edu
