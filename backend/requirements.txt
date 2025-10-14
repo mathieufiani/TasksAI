@@ -8,6 +8,17 @@ alembic==1.13.3
 python-dotenv==1.0.1
 python-multipart==0.0.12
 
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+google-auth==2.35.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+
+# Email
+aiosmtplib==3.0.2
+email-validator==2.2.0
+
 # OpenAI & AI
 openai==1.52.0
 

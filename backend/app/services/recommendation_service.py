@@ -226,6 +226,7 @@ Make the suggestions practical, achievable in the given context, and aligned wit
         self,
         user_message: UserContextMessage,
         db: Session,
+        user_id: int,
         top_k: int = 3
     ) -> RecommendationResponse:
         """
@@ -234,6 +235,7 @@ Make the suggestions practical, achievable in the given context, and aligned wit
         Args:
             user_message: User's description of current state
             db: Database session
+            user_id: ID of the user requesting recommendations (for user isolation)
             top_k: Number of recommendations to return
 
         Returns:
@@ -242,8 +244,9 @@ Make the suggestions practical, achievable in the given context, and aligned wit
         # Extract context from message
         user_context = await self.extract_context_from_message(user_message.message)
 
-        # Get all active, incomplete tasks with labels
+        # Get all active, incomplete tasks with labels for this user
         tasks = db.query(Task).filter(
+            Task.user_id == user_id,
             Task.is_active == True,
             Task.status != TaskStatus.COMPLETED
         ).all()

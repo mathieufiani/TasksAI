@@ -51,6 +51,7 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
     status = Column(SQLEnum(TaskStatus, native_enum=False, length=50), default=TaskStatus.TODO, nullable=False, index=True)
@@ -77,10 +78,11 @@ class Task(Base):
     embedding_version = Column(String(50), nullable=True)
 
     # Relationships
+    user = relationship("User", back_populates="tasks")
     labels = relationship("TaskLabel", back_populates="task", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Task(id={self.id}, title='{self.title}', status='{self.status}', labeling_status='{self.labeling_status}')>"
+        return f"<Task(id={self.id}, user_id={self.user_id}, title='{self.title}', status='{self.status}', labeling_status='{self.labeling_status}')>"
 
 
 class TaskLabel(Base):

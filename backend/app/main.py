@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.endpoints import tasks, labels, recommendations
+from app.api import auth
 from app.db.init_db import init_db
 
 # Create FastAPI application
@@ -29,6 +30,12 @@ async def startup_event():
 
 
 # Include routers
+app.include_router(
+    auth.router,
+    prefix=settings.API_V1_PREFIX,
+    tags=["auth"]
+)
+
 app.include_router(
     tasks.router,
     prefix=f"{settings.API_V1_PREFIX}/tasks",

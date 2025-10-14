@@ -3,9 +3,10 @@
  * Handles all communication with the backend API
  */
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG, API_ENDPOINTS } from '../config/api';
 import { Priority } from '../types/Todo';
+import { authStorage } from './authStorage';
 
 // Backend Task interface (matches FastAPI schema)
 export interface BackendTask {
@@ -57,10 +58,17 @@ class ApiService {
       },
     });
 
-    // Add request interceptor for logging
+    // Add request interceptor for authentication and logging
     this.client.interceptors.request.use(
-      config => {
+      async (config: InternalAxiosRequestConfig) => {
         console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+
+        // Add authentication token to headers
+        const accessToken = await authStorage.getAccessToken();
+        if (accessToken) {
+          config.headers.Authorization = `Bearer ${accessToken}`;
+        }
+
         return config;
       },
       error => {
@@ -69,13 +77,60 @@ class ApiService {
       }
     );
 
-    // Add response interceptor for logging
+    // Add response interceptor for token refresh and logging
     this.client.interceptors.response.use(
       response => {
         console.log(`[API] Response:`, response.status, response.data);
         return response;
       },
-      error => {
+      async error => {
+        const originalRequest = error.config;
+
+        // If 401 and we haven't already tried to refresh, attempt token refresh
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            console.log('[API] Access token expired, attempting refresh...');
+
+            const refreshToken = await authStorage.getRefreshToken();
+            if (!refreshToken) {
+              console.log('[API] No refresh token available');
+              throw error;
+            }
+
+            // Call refresh endpoint
+            const response = await axios.post(
+              `${API_CONFIG.BASE_URL}${API_CONFIG.API_VERSION}/auth/refresh`,
+              { refresh_token: refreshToken }
+            );
+
+            const { access_token, refresh_token: newRefreshToken } = response.data;
+
+            // Store new tokens
+            await authStorage.setTokens({
+              access_token,
+              refresh_token: newRefreshToken,
+              token_type: 'bearer',
+              expires_in: 604800, // 7 days
+            });
+
+            console.log('[API] Token refreshed successfully');
+
+            // Retry original request with new token
+            originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            console.error('[API] Token refresh failed:', refreshError);
+
+            // Clear auth data and redirect to login
+            await authStorage.clearAuth();
+
+            // The app will redirect to login via AuthContext
+            throw refreshError;
+          }
+        }
+
         console.error('[API] Response error:', error.response?.data || error.message);
         return Promise.reject(error);
       }

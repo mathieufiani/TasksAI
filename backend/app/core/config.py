@@ -32,6 +32,25 @@ class Settings(BaseSettings):
     PINECONE_CLOUD: str = "aws"
     PINECONE_REGION: str = "us-east-1"
 
+    # JWT Authentication
+    JWT_SECRET_KEY: str = "your-secret-key-change-this-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
+    JWT_REFRESH_TOKEN_EXPIRE_MINUTES: Optional[int] = None  # No expiration
+
+    # OAuth (Google)
+    GOOGLE_CLIENT_ID: str = "760010077219-fo9ra7n76fheo5tgq7vl3tb3n6jsta51.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET: str = "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"
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
+
+    # Email (for password reset)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = "noreply@tasksai.com"
+    EMAIL_FROM_NAME: str = "TasksAI"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=True,

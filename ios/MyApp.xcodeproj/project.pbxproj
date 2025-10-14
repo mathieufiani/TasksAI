@@ -263,7 +263,7 @@
 				DEVELOPMENT_TEAM = 3TP59Z6V3C;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = MyApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TaskAI;
+				INFOPLIST_KEY_CFBundleDisplayName = TasksAI;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -293,7 +293,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3TP59Z6V3C;
 				INFOPLIST_FILE = MyApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TaskAI;
+				INFOPLIST_KEY_CFBundleDisplayName = TasksAI;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
