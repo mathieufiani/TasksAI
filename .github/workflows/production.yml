@@ -96,7 +96,7 @@ jobs:
           # Wait up to 5 minutes for the health endpoint to respond
           MAX_ATTEMPTS=30
           SLEEP_TIME=10
-          HEALTH_URL="https://${{ env.GCP_PROJECT_ID }}.appspot.com/api/v1/health"
+          HEALTH_URL="https://${{ env.GCP_PROJECT_ID }}.appspot.com/health"
 
           for i in $(seq 1 $MAX_ATTEMPTS); do
             echo "Attempt $i/$MAX_ATTEMPTS: Checking $HEALTH_URL"
