@@ -66,7 +66,7 @@ Many task management apps help you organize work but don't help you understand o
 **Tech Stack**:
 - **Frontend**: React Native 0.82, TypeScript, React Navigation
 - **Backend**: FastAPI (Python 3.11), SQLAlchemy, Pydantic
-- **Database**: SQLite (dev), PostgreSQL-ready (production migration planned)
+- **Database**: SQLite (dev), Cloud SQL PostgreSQL (production)
 - **AI/ML**: OpenAI GPT-4o-mini, text-embedding-3-small, Pinecone vector DB
 - **Deployment**: Google Cloud App Engine, GitHub Actions CI/CD
 - **Testing**: Pytest, React Native Testing Library
@@ -640,19 +640,19 @@ npm test                      # Run tests
 
 ## Known Limitations
 
-1. **SQLite in production**: Currently using SQLite in /tmp (data resets on instance restart). Migration to Cloud SQL PostgreSQL planned.
-2. **No pagination**: Task listing returns all tasks (fine for MVP, add pagination for scale)
-3. **Basic search**: No full-text search yet (planned with PostgreSQL)
-4. **Single region**: Deployed only in us-east-1 (Pinecone) and us-central1 (GCP)
+1. **No pagination**: Task listing returns all tasks (fine for MVP, add pagination for scale)
+2. **Basic search**: No full-text search yet (can be enhanced with PostgreSQL full-text features)
+3. **Single region**: Deployed only in us-east-1 (Pinecone) and us-central1 (GCP)
+4. **SQLite for development**: Local development uses SQLite; production uses Cloud SQL PostgreSQL
 
 ---
 
 ## Future Enhancements
 
-- [ ] PostgreSQL migration for persistent data
 - [ ] Real-time task updates (WebSockets)
 - [ ] Collaborative task sharing
 - [ ] Advanced filtering and search
+- [ ] Full-text search with PostgreSQL
 - [ ] Task templates and recurring tasks
 - [ ] Mobile push notifications
 - [ ] Calendar integration
