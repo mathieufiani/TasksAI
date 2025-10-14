@@ -65,12 +65,63 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
+      - name: Install yq for YAML processing
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
       - name: Deploy to App Engine (Production)
         run: |
-          gcloud app deploy app.production.yaml --quiet --version=prod-${{ github.sha }} --promote
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          # Create app.yaml with secrets injected into env_variables section using yq
+          cp app.production.yaml app.deploy.yaml
+
+          # Use yq to properly inject the API keys into the YAML structure
+          yq eval '.env_variables.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}"' -i app.deploy.yaml
+          yq eval '.env_variables.PINECONE_API_KEY = "${{ secrets.PINECONE_API_KEY }}"' -i app.deploy.yaml
+
+          # Verify the changes
+          echo "=== Checking env_variables section ==="
+          yq eval '.env_variables | with_entries(select(.key == "OPENAI_API_KEY" or .key == "PINECONE_API_KEY" or .key == "PINECONE_REGION"))' app.deploy.yaml
+
+          # Deploy with the modified app.yaml
+          gcloud app deploy app.deploy.yaml --quiet --version=prod-${{ github.sha }} --promote
+
+          # Clean up
+          rm app.deploy.yaml
+
+      - name: Wait for deployment to become healthy
+        run: |
+          echo "Waiting for App Engine instance to start and become healthy..."
+
+          # Wait up to 5 minutes for the health endpoint to respond
+          MAX_ATTEMPTS=30
+          SLEEP_TIME=10
+          HEALTH_URL="https://${{ env.GCP_PROJECT_ID }}.appspot.com/health"
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Attempt $i/$MAX_ATTEMPTS: Checking $HEALTH_URL"
+
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✓ Health check passed! App is running."
+              curl -s "$HEALTH_URL"
+              exit 0
+            elif [ "$HTTP_CODE" = "503" ]; then
+              echo "⏳ Service unavailable (503) - instance still starting..."
+            else
+              echo "⚠ Received HTTP $HTTP_CODE"
+            fi
+
+            if [ $i -lt $MAX_ATTEMPTS ]; then
+              echo "Waiting ${SLEEP_TIME}s before next attempt..."
+              sleep $SLEEP_TIME
+            fi
+          done
+
+          echo "❌ Health check failed after $MAX_ATTEMPTS attempts"
+          echo "Deployment may have succeeded but the app is not responding to health checks"
+          exit 1
 
       - name: Verify deployment
         run: |

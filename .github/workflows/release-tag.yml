@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 env:
   PYTHON_VERSION: '3.11'
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -57,7 +60,12 @@ jobs:
 
       - name: Extract tag name
         id: tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          # Convert v1.0.0 to v1-0-0 (lowercase letters, digits, hyphens only)
+          VERSION_NAME=$(echo "$TAG_NAME" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -69,14 +77,17 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
+      - name: Inject secrets into app.production.yaml
+        run: |
+          # Add API keys to env_variables in app.production.yaml
+          sed -i '/env_variables:/a\  OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}"\n  PINECONE_API_KEY: "${{ secrets.PINECONE_API_KEY }}"' app.production.yaml
+
       - name: Deploy to App Engine (Production)
         run: |
-          gcloud app deploy app.production.yaml --quiet --version=${{ steps.tag.outputs.TAG_NAME }} --promote
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          gcloud app deploy app.production.yaml --quiet --version=${{ steps.tag.outputs.VERSION_NAME }} --promote
 
       - name: Create GitHub Release
+        continue-on-error: true
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
