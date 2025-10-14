@@ -94,3 +94,10 @@ backend/htmlcov/
 # GCP
 backend/app.yaml
 backend/.gcloudignore
+
+# Additional security - explicitly ignore all secret files
+key.json
+*.pem
+*.key
+credentials.json
+serviceAccountKey.json
