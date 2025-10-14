@@ -6,7 +6,7 @@
 import { Platform } from 'react-native';
 
 // Production API URL - deployed on Google Cloud App Engine
-const PRODUCTION_API_URL = 'https://tasksai-474818.uc.r.appspot.com';
+const PRODUCTION_API_URL = 'https://tasksai-474818.appspot.com';
 const LOCAL_DEV_URL_IOS = 'http://localhost:8000';
 const LOCAL_DEV_URL_ANDROID = 'http://10.0.2.2:8000';
 
