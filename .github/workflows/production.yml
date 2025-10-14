@@ -67,10 +67,8 @@ jobs:
 
       - name: Deploy to App Engine (Production)
         run: |
-          gcloud app deploy app.production.yaml --quiet --version=prod-${{ github.sha }} --promote
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          gcloud app deploy app.production.yaml --quiet --version=prod-${{ github.sha }} --promote \
+            --set-env-vars OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}",PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}"
 
       - name: Verify deployment
         run: |
