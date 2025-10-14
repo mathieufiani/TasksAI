@@ -12,8 +12,9 @@ env_variables:
   API_V1_PREFIX: "/api/v1"
   BACKEND_CORS_ORIGINS: '["*"]'
 
-  # Database - Using SQLite for now (will be migrated to Cloud SQL later)
-  DATABASE_URL: "sqlite:///./tasksai.db"
+  # Database - Using SQLite in /tmp for now (data is temporary - resets on instance restart)
+  # TODO: Migrate to Cloud SQL PostgreSQL for persistent storage
+  DATABASE_URL: "sqlite:////tmp/tasksai.db"
   DATABASE_ECHO: "False"
 
   # OpenAI - Set in GitHub Secrets
