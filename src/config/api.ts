@@ -19,16 +19,24 @@ const isPhysicalDevice = () => {
 };
 
 const getBaseURL = () => {
+  // TEMPORARY FIX: Always use localhost for iOS simulator during development
+  // TODO: Revert this once we fix the build configuration to use Debug mode
+  if (Platform.OS === 'ios' && !isPhysicalDevice()) {
+    return LOCAL_DEV_URL_IOS;
+  }
+
+  // Original logic (commented out temporarily):
   // For physical devices, always use production backend
   // For simulators/emulators in dev mode, use local backend
-  if (__DEV__ && !isPhysicalDevice()) {
-    // Development mode on simulator/emulator - local backend
-    if (Platform.OS === 'ios') {
-      return LOCAL_DEV_URL_IOS;
-    } else if (Platform.OS === 'android') {
-      return LOCAL_DEV_URL_ANDROID;
-    }
-  }
+  // if (__DEV__ && !isPhysicalDevice()) {
+  //   // Development mode on simulator/emulator - local backend
+  //   if (Platform.OS === 'ios') {
+  //     return LOCAL_DEV_URL_IOS;
+  //   } else if (Platform.OS === 'android') {
+  //     return LOCAL_DEV_URL_ANDROID;
+  //   }
+  // }
+
   // Production mode or physical device - use App Engine backend
   return PRODUCTION_API_URL;
 };
@@ -45,3 +53,6 @@ export const API_ENDPOINTS = {
   TASK_LABELS: (taskId: string) => `/labels/task/${taskId}`,
   LABEL_STATUS: (taskId: string) => `/labels/task/${taskId}/status`,
 };
+
+// Export API_URL for backward compatibility
+export const API_URL = API_CONFIG.BASE_URL;

@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -17,8 +17,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Toast from 'react-native-toast-message';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { AuthStackNavigator } from './src/navigation/AuthStackNavigator';
 import { TasksStackNavigator } from './src/navigation/TasksStackNavigator';
 import { ChatBotScreen } from './src/screens/ChatBotScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
 import colors from './src/theme/colors';
 import { spacing, borderRadius } from './src/theme/styles';
 
@@ -37,75 +40,96 @@ const AssistantIcon = ({ color, focused }: { color: string; focused: boolean }) 
   </Text>
 );
 
-function App() {
-  const [loading, setLoading] = useState(true);
+const ProfileIcon = ({ color, focused }: { color: string; focused: boolean }) => (
+  <Text style={[styles.tabIcon, { color }]}>
+    {focused ? '👤' : '👥'}
+  </Text>
+);
 
-  // Give app time to initialize
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 100);
-    return () => clearTimeout(timer);
-  }, []);
+// Main App Navigator - shows after authentication
+const AppNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          height: 80,
+          paddingBottom: spacing.lg,
+          paddingTop: spacing.sm,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 4,
+        },
+      }}>
+      <Tab.Screen
+        name="Tasks"
+        component={TasksStackNavigator}
+        options={{
+          tabBarIcon: TasksIcon,
+        }}
+      />
+      <Tab.Screen
+        name="Assistant"
+        component={ChatBotScreen}
+        options={{
+          tabBarIcon: AssistantIcon,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          tabBarIcon: ProfileIcon,
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
-  if (loading) {
+// Root Navigator - handles authentication routing
+const RootNavigator = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
     return (
-      <SafeAreaProvider>
-        <View style={styles.loadingContainer}>
-          <View style={styles.loadingContent}>
-            <Text style={styles.loadingEmoji}>✅</Text>
-            <ActivityIndicator
-              size="large"
-              color={colors.primary}
-              style={styles.loadingSpinner}
-            />
-            <Text style={styles.loadingText}>
-              Loading TasksAI...
-            </Text>
-          </View>
+      <View style={styles.loadingContainer}>
+        <View style={styles.loadingContent}>
+          <Text style={styles.loadingEmoji}>✅</Text>
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={styles.loadingSpinner}
+          />
+          <Text style={styles.loadingText}>Loading TasksAI...</Text>
         </View>
-      </SafeAreaProvider>
+      </View>
     );
   }
 
+  // Show auth screens or app screens based on authentication state
+  return (
+    <NavigationContainer>
+      {isAuthenticated ? <AppNavigator /> : <AuthStackNavigator />}
+    </NavigationContainer>
+  );
+};
+
+function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.textTertiary,
-            tabBarStyle: {
-              backgroundColor: colors.surface,
-              borderTopWidth: 1,
-              borderTopColor: colors.border,
-              height: 80,
-              paddingBottom: spacing.lg,
-              paddingTop: spacing.sm,
-            },
-            tabBarLabelStyle: {
-              fontSize: 11,
-              fontWeight: '600',
-              marginTop: 4,
-            },
-          }}>
-          <Tab.Screen
-            name="Tasks"
-            component={TasksStackNavigator}
-            options={{
-              tabBarIcon: TasksIcon,
-            }}
-          />
-          <Tab.Screen
-            name="Assistant"
-            component={ChatBotScreen}
-            options={{
-              tabBarIcon: AssistantIcon,
-            }}
-          />
-        </Tab.Navigator>
-      </NavigationContainer>
-      <Toast />
+      <AuthProvider>
+        <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+        <RootNavigator />
+        <Toast />
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

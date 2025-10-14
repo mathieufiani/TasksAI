@@ -4,10 +4,12 @@ from typing import List, Optional
 
 from app.db import get_db
 from app.models.task import Task, TaskLabel, LabelCategory
+from app.models.user import User
 from app.schemas.label import (
     LabelResponse, LabelUpdate, LabelingStatusResponse
 )
 from app.services.background_tasks import background_labeling_service
+from app.core.auth import get_current_user
 
 router = APIRouter()
 
@@ -15,10 +17,14 @@ router = APIRouter()
 @router.get("/task/{task_id}", response_model=List[LabelResponse])
 def get_task_labels(
     task_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all labels for a specific task"""
-    task = db.query(Task).filter(Task.id == task_id).first()
+    """Get all labels for a specific task (requires authentication, user-isolated)"""
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.user_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -28,10 +34,14 @@ def get_task_labels(
 @router.get("/task/{task_id}/primary", response_model=List[LabelResponse])
 def get_task_primary_labels(
     task_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get primary labels for a specific task"""
-    task = db.query(Task).filter(Task.id == task_id).first()
+    """Get primary labels for a specific task (requires authentication, user-isolated)"""
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.user_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -46,10 +56,14 @@ def get_task_primary_labels(
 @router.get("/task/{task_id}/status", response_model=LabelingStatusResponse)
 def get_labeling_status(
     task_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get labeling status for a task"""
-    task = db.query(Task).filter(Task.id == task_id).first()
+    """Get labeling status for a task (requires authentication, user-isolated)"""
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.user_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -73,10 +87,15 @@ def get_labeling_status(
 def update_label(
     label_id: int,
     label_update: LabelUpdate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update a specific label (for user edits)"""
-    label = db.query(TaskLabel).filter(TaskLabel.id == label_id).first()
+    """Update a specific label (for user edits) (requires authentication, user-isolated)"""
+    # Get label with task relationship to verify user ownership
+    label = db.query(TaskLabel).join(Task).filter(
+        TaskLabel.id == label_id,
+        Task.user_id == current_user.id
+    ).first()
     if not label:
         raise HTTPException(status_code=404, detail="Label not found")
 
@@ -98,10 +117,15 @@ def update_label(
 @router.delete("/{label_id}", status_code=204)
 def delete_label(
     label_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Delete a specific label"""
-    label = db.query(TaskLabel).filter(TaskLabel.id == label_id).first()
+    """Delete a specific label (requires authentication, user-isolated)"""
+    # Get label with task relationship to verify user ownership
+    label = db.query(TaskLabel).join(Task).filter(
+        TaskLabel.id == label_id,
+        Task.user_id == current_user.id
+    ).first()
     if not label:
         raise HTTPException(status_code=404, detail="Label not found")
 
@@ -113,10 +137,14 @@ def delete_label(
 @router.post("/task/{task_id}/re-label", status_code=202)
 async def trigger_re_labeling(
     task_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Manually trigger re-labeling for a task"""
-    task = db.query(Task).filter(Task.id == task_id).first()
+    """Manually trigger re-labeling for a task (requires authentication, user-isolated)"""
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.user_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -135,10 +163,11 @@ def search_tasks_by_label(
     categories: Optional[List[LabelCategory]] = Query(None, description="Filter by categories"),
     min_confidence: Optional[float] = Query(None, ge=0.0, le=1.0),
     primary_only: bool = Query(False, description="Only primary labels"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Search for tasks by labels"""
-    query = db.query(Task).join(TaskLabel)
+    """Search for tasks by labels (requires authentication, user-isolated)"""
+    query = db.query(Task).join(TaskLabel).filter(Task.user_id == current_user.id)
 
     if label_names:
         query = query.filter(TaskLabel.label_name.in_(label_names))
@@ -170,26 +199,36 @@ def search_tasks_by_label(
 
 
 @router.get("/statistics")
-def get_label_statistics(db: Session = Depends(get_db)):
-    """Get statistics about labels in the system"""
+def get_label_statistics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get statistics about labels in the system (requires authentication, user-isolated)"""
     from sqlalchemy import func
 
-    # Total labels
-    total_labels = db.query(func.count(TaskLabel.id)).scalar()
+    # Total labels for current user's tasks
+    total_labels = db.query(func.count(TaskLabel.id))\
+        .join(Task)\
+        .filter(Task.user_id == current_user.id)\
+        .scalar()
 
-    # Labels by category
+    # Labels by category for current user's tasks
     by_category = db.query(
         TaskLabel.label_category,
         func.count(TaskLabel.id).label('count')
-    ).group_by(TaskLabel.label_category).all()
+    ).join(Task)\
+     .filter(Task.user_id == current_user.id)\
+     .group_by(TaskLabel.label_category).all()
 
-    # Most common labels
+    # Most common labels for current user's tasks
     most_common = db.query(
         TaskLabel.label_name,
         TaskLabel.label_category,
         func.count(TaskLabel.id).label('count'),
         func.avg(TaskLabel.confidence_score).label('avg_confidence')
-    ).group_by(TaskLabel.label_name, TaskLabel.label_category)\
+    ).join(Task)\
+     .filter(Task.user_id == current_user.id)\
+     .group_by(TaskLabel.label_name, TaskLabel.label_category)\
      .order_by(func.count(TaskLabel.id).desc())\
      .limit(20).all()
 

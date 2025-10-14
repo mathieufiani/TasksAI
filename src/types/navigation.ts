@@ -6,6 +6,13 @@ export type SerializableTodo = Omit<Todo, 'createdAt' | 'deadline'> & {
   deadline?: string;
 };
 
+// Auth Stack Navigation Types
+export type AuthStackParamList = {
+  Login: undefined;
+  Signup: undefined;
+};
+
+// Main App Stack Navigation Types
 export type TasksStackParamList = {
   TodoList: undefined;
   TaskDetail: {
@@ -13,4 +20,10 @@ export type TasksStackParamList = {
     onUpdate: (updatedTodo: Todo) => void;
     onDelete: (id: string) => void;
   };
+};
+
+// Root Stack Navigation Types
+export type RootStackParamList = {
+  Auth: undefined;
+  App: undefined;
 };

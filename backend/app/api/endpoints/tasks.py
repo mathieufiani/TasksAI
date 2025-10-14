@@ -6,8 +6,10 @@ from datetime import datetime
 
 from app.db import get_db
 from app.models.task import Task, TaskStatus, TaskPriority
+from app.models.user import User
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskList
 from app.services.background_tasks import label_task_background
+from app.core.auth import get_current_user
 
 router = APIRouter()
 
@@ -16,10 +18,12 @@ router = APIRouter()
 def create_task(
     task: TaskCreate,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Create a new task and trigger async labeling"""
+    """Create a new task and trigger async labeling (requires authentication)"""
     db_task = Task(
+        user_id=current_user.id,
         title=task.title,
         description=task.description,
         status=task.status,
@@ -44,10 +48,12 @@ def list_tasks(
     priority: Optional[TaskPriority] = Query(None, description="Filter by priority"),
     is_active: Optional[bool] = Query(True, description="Filter by active status (default: True)"),
     search: Optional[str] = Query(None, description="Search in title and description"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """List tasks with pagination and filters"""
-    query = db.query(Task)
+    """List tasks with pagination and filters (requires authentication, user-isolated)"""
+    # Start with user's tasks only
+    query = db.query(Task).filter(Task.user_id == current_user.id)
 
     # Apply filters - by default only show active tasks
     if status:
@@ -85,10 +91,14 @@ def list_tasks(
 @router.get("/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get a specific task by ID"""
-    task = db.query(Task).filter(Task.id == task_id).first()
+    """Get a specific task by ID (requires authentication, user-isolated)"""
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.user_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
@@ -99,10 +109,14 @@ def update_task(
     task_id: int,
     task_update: TaskUpdate,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update a task and trigger re-labeling"""
-    task = db.query(Task).filter(Task.id == task_id).first()
+    """Update a task and trigger re-labeling (requires authentication, user-isolated)"""
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.user_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -141,10 +155,14 @@ def update_task(
 def delete_task(
     task_id: int,
     hard_delete: bool = Query(False, description="Permanently delete the task"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Delete a task (soft delete by default, hard delete if specified)"""
-    task = db.query(Task).filter(Task.id == task_id).first()
+    """Delete a task (soft delete by default, hard delete if specified) (requires authentication, user-isolated)"""
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.user_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -158,20 +176,33 @@ def delete_task(
 
 
 @router.get("/stats/summary")
-def get_task_stats(db: Session = Depends(get_db)):
-    """Get task statistics"""
-    total = db.query(func.count(Task.id)).scalar()
-    active = db.query(func.count(Task.id)).filter(Task.is_active == True).scalar()
+def get_task_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get task statistics (requires authentication, user-isolated)"""
+    # Filter all stats by current user
+    total = db.query(func.count(Task.id)).filter(Task.user_id == current_user.id).scalar()
+    active = db.query(func.count(Task.id)).filter(
+        Task.user_id == current_user.id,
+        Task.is_active == True
+    ).scalar()
 
     by_status = db.query(
         Task.status,
         func.count(Task.id).label('count')
-    ).filter(Task.is_active == True).group_by(Task.status).all()
+    ).filter(
+        Task.user_id == current_user.id,
+        Task.is_active == True
+    ).group_by(Task.status).all()
 
     by_priority = db.query(
         Task.priority,
         func.count(Task.id).label('count')
-    ).filter(Task.is_active == True).group_by(Task.priority).all()
+    ).filter(
+        Task.user_id == current_user.id,
+        Task.is_active == True
+    ).group_by(Task.priority).all()
 
     return {
         "total": total,

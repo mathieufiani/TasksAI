@@ -35,6 +35,10 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to let you choose a profile picture.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to let you take a profile picture.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -57,5 +61,18 @@
 		<string>Feather.ttf</string>
 		<string>MaterialIcons.ttf</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.760010077219-fo9ra7n76fheo5tgq7vl3tb3n6jsta51</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<string>760010077219-fo9ra7n76fheo5tgq7vl3tb3n6jsta51.apps.googleusercontent.com</string>
 </dict>
 </plist>
