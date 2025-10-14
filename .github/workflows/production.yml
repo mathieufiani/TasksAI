@@ -65,13 +65,23 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
+      - name: Install yq for YAML processing
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
       - name: Deploy to App Engine (Production)
         run: |
-          # Create app.yaml with secrets injected into env_variables section
-          # Find the line with "PINECONE_REGION" and insert API keys after it
-          sed '/PINECONE_REGION:/a\
-          \  OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}"\
-          \  PINECONE_API_KEY: "${{ secrets.PINECONE_API_KEY }}"' app.production.yaml > app.deploy.yaml
+          # Create app.yaml with secrets injected into env_variables section using yq
+          cp app.production.yaml app.deploy.yaml
+
+          # Use yq to properly inject the API keys into the YAML structure
+          yq eval '.env_variables.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}"' -i app.deploy.yaml
+          yq eval '.env_variables.PINECONE_API_KEY = "${{ secrets.PINECONE_API_KEY }}"' -i app.deploy.yaml
+
+          # Verify the changes
+          echo "=== Checking env_variables section ==="
+          yq eval '.env_variables | with_entries(select(.key == "OPENAI_API_KEY" or .key == "PINECONE_API_KEY" or .key == "PINECONE_REGION"))' app.deploy.yaml
 
           # Deploy with the modified app.yaml
           gcloud app deploy app.deploy.yaml --quiet --version=prod-${{ github.sha }} --promote
