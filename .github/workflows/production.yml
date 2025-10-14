@@ -67,10 +67,11 @@ jobs:
 
       - name: Deploy to App Engine (Production)
         run: |
-          # Create app.yaml with secrets injected
-          cat app.production.yaml > app.deploy.yaml
-          echo "  OPENAI_API_KEY: \"${{ secrets.OPENAI_API_KEY }}\"" >> app.deploy.yaml
-          echo "  PINECONE_API_KEY: \"${{ secrets.PINECONE_API_KEY }}\"" >> app.deploy.yaml
+          # Create app.yaml with secrets injected into env_variables section
+          # Find the line with "PINECONE_REGION" and insert API keys after it
+          sed '/PINECONE_REGION:/a\
+          \  OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}"\
+          \  PINECONE_API_KEY: "${{ secrets.PINECONE_API_KEY }}"' app.production.yaml > app.deploy.yaml
 
           # Deploy with the modified app.yaml
           gcloud app deploy app.deploy.yaml --quiet --version=prod-${{ github.sha }} --promote
