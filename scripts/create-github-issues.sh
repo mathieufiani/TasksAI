@@ -97,21 +97,23 @@ check_gh_auth() {
 }
 
 # Enhancement definitions
-# Each enhancement has: title, labels, priority, effort
-declare -A enhancements
-
-enhancements[1]="Add Real-Time Task Updates with WebSockets|enhancement,real-time|Medium|3-5 days"
-enhancements[2]="Collaborative Task Sharing|enhancement,collaboration|High|7-10 days"
-enhancements[3]="Advanced Filtering and Search|enhancement,search,ui|Medium|4-6 days"
-enhancements[4]="Full-Text Search with PostgreSQL|enhancement,database,search|Medium|3-4 days"
-enhancements[5]="Task Templates and Recurring Tasks|enhancement,productivity|High|6-8 days"
-enhancements[6]="Mobile Push Notifications|enhancement,mobile,notifications|Medium|4-6 days"
-enhancements[7]="Calendar Integration|enhancement,integration,calendar|Medium|7-9 days"
-enhancements[8]="Pagination for Task Listing|enhancement,performance,api|High|3-4 days"
-enhancements[9]="Smart Task Scheduling (AI)|enhancement,ai,productivity|Low|10-14 days"
-enhancements[10]="Productivity Analytics Dashboard|enhancement,analytics,visualization|Medium|5-7 days"
-enhancements[11]="Offline Mode with Sync|enhancement,mobile,offline|High|8-10 days"
-enhancements[12]="Home Screen Widgets (iOS/Android)|enhancement,mobile,ui|Medium|5-6 days"
+# Function to get enhancement data by index
+get_enhancement() {
+    case $1 in
+        1) echo "Add Real-Time Task Updates with WebSockets|enhancement,real-time|Medium|3-5 days" ;;
+        2) echo "Collaborative Task Sharing|enhancement,collaboration|High|7-10 days" ;;
+        3) echo "Advanced Filtering and Search|enhancement,search,ui|Medium|4-6 days" ;;
+        4) echo "Full-Text Search with PostgreSQL|enhancement,database,search|Medium|3-4 days" ;;
+        5) echo "Task Templates and Recurring Tasks|enhancement,productivity|High|6-8 days" ;;
+        6) echo "Mobile Push Notifications|enhancement,mobile,notifications|Medium|4-6 days" ;;
+        7) echo "Calendar Integration|enhancement,integration,calendar|Medium|7-9 days" ;;
+        8) echo "Pagination for Task Listing|enhancement,performance,api|High|3-4 days" ;;
+        9) echo "Smart Task Scheduling (AI)|enhancement,ai,productivity|Low|10-14 days" ;;
+        10) echo "Productivity Analytics Dashboard|enhancement,analytics,visualization|Medium|5-7 days" ;;
+        11) echo "Offline Mode with Sync|enhancement,mobile,offline|High|8-10 days" ;;
+        12) echo "Home Screen Widgets (iOS/Android)|enhancement,mobile,ui|Medium|5-6 days" ;;
+    esac
+}
 
 extract_section() {
     local file="$1"
@@ -202,7 +204,7 @@ main() {
 
     # Process each enhancement
     for i in {1..12}; do
-        IFS='|' read -r title labels priority effort <<< "${enhancements[$i]}"
+        IFS='|' read -r title labels priority effort <<< "$(get_enhancement $i)"
 
         # Extract section from markdown
         local body_file="$temp_dir/issue-$i.md"
