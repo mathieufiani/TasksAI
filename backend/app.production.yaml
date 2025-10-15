@@ -17,13 +17,13 @@ env_variables:
   DATABASE_URL: "sqlite:////tmp/tasksai.db"
   DATABASE_ECHO: "False"
 
-  # OpenAI - Set in GitHub Secrets
-  # OPENAI_API_KEY: will be set via environment variables
+  # OpenAI - Set via environment variables (not hardcoded for security)
+  # OPENAI_API_KEY: set via gcloud app deploy --set-env-vars
   OPENAI_MODEL: "gpt-4o-mini"
   OPENAI_EMBEDDING_MODEL: "text-embedding-3-small"
 
-  # Pinecone - Set in GitHub Secrets
-  # PINECONE_API_KEY: will be set via environment variables
+  # Pinecone - Set via environment variables (not hardcoded for security)
+  # PINECONE_API_KEY: set via gcloud app deploy --set-env-vars
   PINECONE_INDEX_NAME: "task-recommendations"
   PINECONE_NAMESPACE: "default"
   PINECONE_CLOUD: "aws"
