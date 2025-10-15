@@ -1,8 +1,9 @@
-name: Deploy to Production
+name: Deploy Main/Release to Staging
 
 on:
   push:
     branches:
+      - main
       - release
 
 env:
@@ -44,7 +45,7 @@ jobs:
           PINECONE_API_KEY: "test-key"
 
   deploy:
-    name: Deploy to GCP App Engine (Production)
+    name: Deploy to GCP App Engine (Staging)
     runs-on: ubuntu-latest
     needs: test
     defaults:
@@ -70,10 +71,10 @@ jobs:
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Deploy to App Engine (Production)
+      - name: Deploy to App Engine (Staging)
         run: |
           # Create app.yaml with secrets injected into env_variables section using yq
-          cp app.production.yaml app.deploy.yaml
+          cp app.staging.yaml app.deploy.yaml
 
           # Use yq to properly inject the API keys into the YAML structure
           yq eval '.env_variables.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}"' -i app.deploy.yaml
@@ -84,7 +85,7 @@ jobs:
           yq eval '.env_variables | with_entries(select(.key == "OPENAI_API_KEY" or .key == "PINECONE_API_KEY" or .key == "PINECONE_REGION"))' app.deploy.yaml
 
           # Deploy with the modified app.yaml
-          gcloud app deploy app.deploy.yaml --quiet --version=prod-${{ github.sha }} --promote
+          gcloud app deploy app.deploy.yaml --quiet --version=staging-${{ github.sha }} --promote
 
           # Clean up
           rm app.deploy.yaml
@@ -126,8 +127,8 @@ jobs:
       - name: Verify deployment
         run: |
           echo "Deployment completed successfully!"
-          echo "Production URL: https://${{ env.GCP_PROJECT_ID }}.appspot.com"
+          echo "Staging URL: https://${{ env.GCP_PROJECT_ID }}.appspot.com"
 
       - name: Create deployment notification
         run: |
-          echo "::notice title=Production Deployment::Successfully deployed to production environment"
+          echo "::notice title=Staging Deployment::Successfully deployed main/release branch to staging environment"

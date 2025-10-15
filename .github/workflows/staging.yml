@@ -65,12 +65,25 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
+      - name: Install yq for YAML processing
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
       - name: Deploy to App Engine (Staging)
         run: |
-          gcloud app deploy app.staging.yaml --quiet --version=staging-${{ github.sha }} --no-promote
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          # Create app.yaml with secrets injected into env_variables section using yq
+          cp app.staging.yaml app.deploy.yaml
+
+          # Use yq to properly inject the API keys into the YAML structure
+          yq eval '.env_variables.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}"' -i app.deploy.yaml
+          yq eval '.env_variables.PINECONE_API_KEY = "${{ secrets.PINECONE_API_KEY }}"' -i app.deploy.yaml
+
+          # Deploy with the modified app.yaml and promote it
+          gcloud app deploy app.deploy.yaml --quiet --version=staging-${{ github.sha }} --promote
+
+          # Clean up
+          rm app.deploy.yaml
 
       - name: Verify deployment
         run: |

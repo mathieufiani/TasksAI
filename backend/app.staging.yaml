@@ -16,13 +16,13 @@ env_variables:
   DATABASE_URL: "postgresql://postgres:TasksAI2025SecurePassword@/tasksdb?host=/cloudsql/tasksai-474818:us-central1:tasksai-db"
   DATABASE_ECHO: "False"
 
-  # OpenAI
-  OPENAI_API_KEY: "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"
-  OPENAI_MODEL: "gpt-4"
+  # OpenAI - Set via environment variables (not hardcoded for security)
+  # OPENAI_API_KEY: set via gcloud app deploy --set-env-vars or GitHub Actions
+  OPENAI_MODEL: "gpt-4o-mini"
   OPENAI_EMBEDDING_MODEL: "text-embedding-3-small"
 
-  # Pinecone
-  PINECONE_API_KEY: "pcsk_5H7MDW_MPzHqwrdcxAfvE2aZ79GtXM7hqiFys5vit2hnGKC3RNjbdUjSSLipApQy4uDFts"
+  # Pinecone - Set via environment variables (not hardcoded for security)
+  # PINECONE_API_KEY: set via gcloud app deploy --set-env-vars or GitHub Actions
   PINECONE_INDEX_NAME: "task-recommendations-staging"
   PINECONE_NAMESPACE: "staging"
   PINECONE_CLOUD: "aws"
